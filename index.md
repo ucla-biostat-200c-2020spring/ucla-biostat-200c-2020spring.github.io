@@ -17,6 +17,8 @@ Tue 10am-11:50pm @ Zoom <https://ucla.zoom.us/j/176728998>
 Thu 10am-10:50am @ Zoom <https://ucla.zoom.us/j/176728998>  
 Thu 11am-11:50am (Discussion) @ Zoom <https://ucla.zoom.us/j/176728998>  
 
+There will be no labs, which are replaced by office hours listed below.   
+
 ### Instructor
 
 [Dr. Hua Zhou](http://hua-zhou.github.io/)  
