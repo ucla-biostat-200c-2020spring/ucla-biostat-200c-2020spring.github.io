@@ -9,7 +9,7 @@ BIOSTAT 200C tentative schedule and handouts (expect frequent updates)
 
 Zoom link: <https://ucla.zoom.us/j/176728998>
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/ucla-biostat-200c-2020spring/ucla-biostat-200c-2020spring.github.io/master)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/ucla-biostat-200c-2020spring/ucla-biostat-200c-2020spring.github.io/master?urlpath=rstudio)
 
 **ELMR** stands for the textbook _Extending the Linear Model with R_. 
 
