@@ -11,7 +11,7 @@ subtitle: Biostat 200C
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(fig.align = 'center', cache = TRUE)
+knitr::opts_chunk$set(fig.align = 'center', cache = FALSE)
 ```
 
 Display system information and load `tidyverse` and `faraway` packages
@@ -24,24 +24,28 @@ library(faraway)
 
 ## GA 2000 US Presidential Election Data
 
-The `gavote` data contains the voting data of GA in the 2000 presidential election. It is available as a dataframe. We convert it into a tibble for easy handling by tidyverse.
+The `gavote` data contains the voting data of Georgia (GA) in the 2000 presidential election. It is available as a dataframe. 
+```{r}
+gavote %>% head(10)
+```
+We convert it into a tibble for easy handling by tidyverse.
 ```{r}
 gavote <- gavote %>% 
   as_tibble(rownames = "county") %>%
   print(width = Inf)
 ```
-
+`str` function is useful for inspecting contents of any R object.
 ```{r}
 str(gavote)
 ```
 
 - Each row is a county in GA. 
 
-- Number of votes can be smaller than the number of ballots because a vote is not recorded if (1) the person fails to vote for President, (2) votes for more than one candidate, or (3) the equipment fails to record the vote. 
+- The number of votes, `votes`, can be smaller than the number of ballots, `ballots`, because a vote is not recorded if (1) the person fails to vote for President, (2) votes for more than one candidate, or (3) the equipment fails to record the vote. 
 
-  We are interested in the `undercount`, which is defined as `(ballots - votes) / ballots`. Does it depend on the type of voting machine `equip`, economy `econ`, percentage of African Americans `perAA`, whether the county is rural or urban `rural`, or whether the county is part of Altanla metropolitan area `atlanta`.
+- We are interested in the `undercount`, which is defined as `(ballots - votes) / ballots`. Does it depend on the type of voting machine `equip`, economy `econ`, percentage of African Americans `perAA`, whether the county is rural or urban `rural`, or whether the county is part of Atlanta metropolitan area `atlanta`. 
 
-Let's create a new variable `undercount`
+    Let's create a new variable `undercount`
 ```{r}
 (gavote <- gavote %>%
   mutate(undercount = (ballots - votes) / ballots))
@@ -54,10 +58,9 @@ Numerical summaries:
 summary(gavote)
 ```
 
-- For factor `rural`, we found it has the same name as one level in this factor. To avoid confusion, let's rename it to `usage`.
+- For factor `rural`, we found the variable name is same as one level in this factor. To avoid confusion, we rename it to `usage`.
 
   We also want to standardize the counts `gore` and `bush` according to the total `votes`.
-
 ```{r}
 (gavote <- gavote %>%
   rename(usage = rural) %>%
@@ -67,25 +70,21 @@ summary(gavote)
 
 - For `equip`, `OS-CC` means ??? and `OS-PC` means optical scan with precinct count.
 
-- 
-```{r}
-```
-
-Let us graphically summarize `undercount` by a histogram
+- Let us graphically summarize `undercount` by a histogram
 ```{r}
 ggplot(data = gavote) +
   geom_histogram(mapping = aes(x = undercount)) +
   labs(x = "Percent Undercount", y = "Number of Counties")
 ```
 
-A scatter plot reveals relationship between two continuous variables.
+- A scatter plot reveals relationship between two continuous variables.
 ```{r}
 ggplot(data = gavote, mapping = aes(x = perAA, y = undercount)) + 
   geom_point() + 
   geom_smooth()
 ```
 
-Let's further stratify according to categorical variable `equip`, `econ`, `usage`, and `atlanta`.
+- Let's further stratify according to factors `equip`, `econ`, `usage`, and `atlanta`.
 ```{r}
 for (var in c("equip", "econ", "usage", "atlanta")) {
   plot <- ggplot(data = gavote) + 
@@ -94,10 +93,20 @@ for (var in c("equip", "econ", "usage", "atlanta")) {
 }
 ```
 
-Pairwise scatter plots are useful to explore the relationships between several continuous variables. We use the `ggpairs` function from `GGally` package.
+- For qualitative predictors, we can also do side-by-side box plots to reveal potential relationship with responses. 
+
+```{r}
+for (var in c("equip", "econ", "usage", "atlanta")) {
+  plot <- ggplot(data = gavote) + 
+    geom_boxplot(mapping = aes(x = get(var), y = undercount))
+  print(plot)
+}
+```
+
+- Pairwise scatter plots are useful to explore the relationships between several continuous variables. We use the `ggpairs` function from `GGally` package.
 ```{r}
 library(GGally)
-ggpairs(data = gavote, columns = c(3, 12, 13, 11), aes(color = econ)) + 
+ggpairs(data = gavote, columns = c(4, 13, 14, 12)) + 
   labs(title = "GA 2000 Presidential Vote Data")
 ```
 
@@ -109,7 +118,7 @@ Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \cdots + \beta_{p-1} X_{p-1} + \epsilo
 $$
 where   
     - the **response variable** or **dependent variable** $Y$ is the `undercount`, the variable of interest,   
-    - the **predictors** $X_1,\ldots,X_{p-1}$ encodes the independent variables `perAA`, `econ`, etc.,   
+    - the **predictors** $X_1,\ldots,X_{p-1}$ encodes the predictors `perAA`, `econ`, etc.,   
     - the **regression coefficients** or **parameters** $\beta_0, \ldots, \beta_{p-1}$ reflects the effects of predictors on response variable $Y$, especially $\beta_0$ is called the **intercept**, and   
     - the **error term** $\epsilon$ includes measurement error.  
 
@@ -132,15 +141,19 @@ $$
 $$
 \|\boldsymbol{\epsilon}\|^2 = \sum_i \epsilon_i^2 = \boldsymbol{\epsilon}^T \boldsymbol{\epsilon} = (\mathbf{y} - \mathbf{X} \boldsymbol{\beta})^T (\mathbf{y} - \mathbf{X} \boldsymbol{\beta}) = \|\mathbf{y} - \mathbf{X} \boldsymbol{\beta}\|^2.
 $$
-- It's important to keep in mind that the least squares estimate only assumes that the errors $\epsilon_i$ (1) are independent, (2) have mean 0 and (3) have equal variance $\sigma^2$. Under these assumptions, the celebrated Gauss-Markov theorem states that the least squares estimate is the best (smallest variance) linear unbiased estimates. 
+- It's important to keep in mind that the least squares estimate only assumes that   
+    1. $\mathbb{E}(\mathbf{Y}) = \mathbf{X} \boldsymbol{\beta}$ (errors have mean 0),  and   
+    2. $\text{Var}(\mathbf{Y}) = \sigma_0^2 \mathbf{I}_n$ (errors are independent with common variance).   
+Under these assumptions, the celebrated Gauss-Markov theorem states that the least squares estimate is the best (smallest variance) linear unbiased estimates. 
 
-    It is the inference part (p-value, standard errors, confidence intervals) that uses the normality assumption.
+    It is the inference part (p-value, standard errors, confidence intervals) that uses the normality assumption   
+    3. $\mathbf{Y} \sim \text{N}(\mathbf{X} \boldsymbol{\beta}, \sigma_0^2 \mathbf{I}_n)$.  
 
 - Under normality assumption, the least squares estimate coincides with the maximum likelihood estimate (MLE).
 
 ## A model with two quantitative predictors
 
-- We start with a linear model with just predictors: percentage of Gore votes `pergore` and percentage of African Americans `perAA`
+- We start with a linear model with just two predictors: percentage of Gore votes, `pergore`, and percentage of African Americans, `perAA`.
 $$
 \text{undercount} = \beta_0 + \beta_1 \cdot \text{pergore} + \beta_2 \cdot \text{perAA} + \epsilon.
 $$
@@ -150,7 +163,7 @@ $$
 ```{r}
 (lmod <- lm(undercount ~ pergore + perAA, gavote))
 ```
-Inspection of the result, stored in `lmod`, shows that it contains rich information. 
+Inspection of the result, stored in `lmod`, shows that it contains rich regression information. 
 ```{r}
 str(lmod)
 ```
@@ -163,7 +176,7 @@ coef(lmod)
 
 - The **fitted values** or **predicted values** are
 $$
-\hat{\mathbf{y}} = \mathbf{X} \widehat{\boldsymbol{\beta}}
+\widehat{\mathbf{y}} = \mathbf{X} \widehat{\boldsymbol{\beta}}
 $$
 ```{r}
 # same as lmod$fitted.values
@@ -171,7 +184,7 @@ predict(lmod) %>% head()
 ```
 and the **residuals** are
 $$
-\widehat{\boldsymbol{\epsilon}} = \mathbf{y} - \mathbf{X} \widehat{\boldsymbol{\beta}} = \mathbf{y} - \hat{\mathbf{y}}. 
+\widehat{\boldsymbol{\epsilon}} = \mathbf{y} - \widehat{\mathbf{y}} = \mathbf{y} - \mathbf{X} \widehat{\boldsymbol{\beta}}. 
 $$
 ```{r}
 # same as lmod$residuals
@@ -209,7 +222,7 @@ lmodsum$sigma
 
 - A commonly used goodness of fit mesure is **$R^2$**, or **coefficient of determination** or **percentage of variance explained**
 $$
-R^2 = 1 - \frac{\sum_i (y_i - \hat{y_i})^2}{\sum_i (y_i - \bar{y})^2} = 1 - \frac{\text{RSS}}{\text{TSS}},
+R^2 = 1 - \frac{\sum_i (y_i - \widehat{y}_i)^2}{\sum_i (y_i - \bar{y})^2} = 1 - \frac{\text{RSS}}{\text{TSS}},
 $$
 where $\text{TSS} = \sum_i (y_i - \bar{y})^2$ is the **total sum of squares**.
 ```{r}
@@ -233,16 +246,15 @@ lmodsum$adj.r.squared
 - Now we also want to include factors `equip` and `usage`, and interaction between `pergore` and `usage` into the model.
 
 - Before that, we first center the `pergore` and `perAA` variables.
-    
 ```{r}
 gavote <- gavote %>%
    mutate(cpergore = pergore - mean(pergore), cperAA = perAA - mean(perAA)) %>%
    print(width = Inf)
 ```
 
-- Fit the new model with `lm`
+- Fit the new model with `lm`. We note the model respects the hierarchy. That is the main effects are automatically added to the model in presense of their interaction. **Question**: how to specify a formula involving just an interaction term but not their main effect?
 ```{r}
-lmodi <- lm(undercount ~ cperAA + cpergore *  usage + equip, gavote)
+lmodi <- lm(undercount ~ cperAA + cpergore * usage + equip, gavote)
 summary(lmodi)
 ```
 
@@ -253,7 +265,6 @@ summary(lmodi)
 \end{eqnarray*}
 
 - **Exercise**: Explain how the variables in `gavote` are translated into $\mathbf{X}$.
-
 ```{r}
 gavote %>%
   select(cperAA, cpergore, equip, usage) %>%
@@ -262,11 +273,11 @@ model.matrix(lmodi) %>% head(10)
 ```
 
 - **Exerciese**: Interpret regression coefficient.  
-    - How do we interpret $\hat \beta_0 = 0.043$?   
-    - How do we interpret $\hat \beta_{\text{cperAA}} = 0.0283$?    
-    - How do we interpret $\hat \beta_{\text{equipOS-PC}} = 0.016$? 
-    - How do we interpret $\hat \beta_{\text{usageurban}} = -0.019$? 
-    - How do we interpret $\hat \beta_{\text{cpergore:usageurban}} = -0.009$? 
+    - How do we interpret $\widehat \beta_0 = 0.043$?   
+    - How do we interpret $\widehat \beta_{\text{cperAA}} = 0.0283$?    
+    - How do we interpret $\widehat \beta_{\text{equipOS-PC}} = 0.016$? 
+    - How do we interpret $\widehat \beta_{\text{usageurban}} = -0.019$? 
+    - How do we interpret $\widehat \beta_{\text{cpergore:usageurban}} = -0.009$? 
 
 ## Hypothesis testing
 
@@ -283,18 +294,17 @@ to its null distribution $F_{p-q, n-p}$. The small p-value 0.0028 indicates we s
 anova(lmod, lmodi)
 ```
 
-- We can carry out the similar $F$-test for each predictor in a model using the `drop1` function. The nice thing is that the factors such as `equip` and `cpergore * usage` are drooped as a group. Q: Why `usage` and `cpergore` are not tested?
+- We can carry out a similar $F$-test for each predictor in a model using the `drop1` function. The nice thing is that the factors such as `equip` and `cpergore * usage` are drooped as a group. 
 ```{r}
 drop1(lmodi, test = "F")
 ```
-
-    We also see $F$-test for quantitative variables, e.g., $cperAA$, conincides with the $t$-test reported by the `lm` function.
+We also see $F$-test for quantitative variables, e.g., `cperAA`, conincides with the $t$-test reported by the `lm` function. **Question**: why `drop1` function does not drop predictors `cpergore` and `usage`? 
 
 ## Confidence intervals
 
 - Confidence intervals for individual parameters can be construced based on their null distribution
 $$
-\frac{\widehat{\beta_j}}{\text{se}(\widehat{\beta_j})} \sim t_{n-p}.
+\frac{\widehat{\beta}_j}{\text{se}(\widehat{\beta}_j)} \sim t_{n-p}.
 $$
 That is a $(1-\alpha)$ confidence interval is
 $$
@@ -308,8 +318,8 @@ confint(lmodi)
 
 - Typical assumptions of linear models are
     1. $\mathbb{E}(\mathbf{Y}) = \mathbf{X} \boldsymbol{\beta}$, or equivalently, $\mathbb{E}(\boldsymbol{\epsilon}) = \mathbf{0}$. That is we have included all the right variables and $Y$ depends on them linearly.   
-    2. Errors $\epsilon_i$ are independent and normally distributed with common variance $\sigma^2$.  
-    We'd like check these assumptions using graphical or numerical approaches. 
+    2. Errors $\epsilon_i$ are independent and normally distributed with common variance $\sigma^2$. That is $\text{Var}(\widehat{\boldsymbol{\epsilon}}) = \sigma_0^2 \mathbf{I}_n$.    
+    We'd like to check these assumptions using graphical or numerical approaches. 
 
 - Four commonly used diagnostic plots can be conveniently obtained by `plot` function.  
 ```{r}
@@ -318,28 +328,28 @@ plot(lmodi)
 
 - The **residual-fitted value plot** is useful for checking the linearity and constant variance assumptions.  
 
-- The **scale-location plot** plots $\sqrt{|\hat{\epsilon}_i|}$ vs fitted values and serves similar purpose as the residual-fitted value plot.  
+- The **scale-location plot** plots $\sqrt{|\widehat{\epsilon}_i|}$ vs fitted values and serves similar purpose as the residual-fitted value plot.  
 
 - The **QQ plot** checks for the normality assumption.  It plots residuals vs the theoretical quantiles from a standard normal distribution $\Phi^{-1}\left( \frac{i}{n+1} \right)$, $i=1,\ldots,n$.
 
 - **Residual-leverage plot**. The fitted values are
 $$
-\mathbf{X} \widehat{\boldsymbol{\beta}} = \mathbf{X} (\mathbf{X}^T \mathbf{X})^{-1} \mathbf{X}^T \mathbf{y} = \mathbf{H} \mathbf{y}.
+\widehat{\mathbf{y}} = \mathbf{X} \widehat{\boldsymbol{\beta}} = \mathbf{X} (\mathbf{X}^T \mathbf{X})^{-1} \mathbf{X}^T \mathbf{y} = \mathbf{H} \mathbf{y}.
 $$
 The diagonal entries of the **hat matrix**, $h_i = H_{ii}$, are called **leverages**. For example,
 $$
-\text{var}(\widehat{\boldsymbol{\epsilon}}) = \text{var}(\mathbf{Y} - \mathbf{X} \widehat{\boldsymbol{\beta}}) = \text{var} [(\mathbf{I} - \mathbf{H}) \mathbf{Y}] = (\mathbf{I} - \mathbf{H}) \text{var}(\mathbf{Y}) (\mathbf{I} - \mathbf{H}) = \sigma^2 (\mathbf{I} - \mathbf{H}).
+\text{Var}(\widehat{\boldsymbol{\epsilon}}) = \text{Var}(\mathbf{Y} - \mathbf{X} \widehat{\boldsymbol{\beta}}) = \text{Var} [(\mathbf{I} - \mathbf{H}) \mathbf{Y}] = (\mathbf{I} - \mathbf{H}) \text{Var}(\mathbf{Y}) (\mathbf{I} - \mathbf{H}) = \sigma^2 (\mathbf{I} - \mathbf{H}).
 $$
-If $h_i$ is large, then $\text{var}(\hat{\epsilon_i}) = \sigma^2 (1 - h_i)$ is small. The fit is "forced" to be close to $y_i$. In this sense it is an **influential point**. Points on the boundary of the predictor space have the most leverage. 
+If $h_i$ is large, then $\text{var}(\widehat{\epsilon_i}) = \sigma^2 (1 - h_i)$ is small. The fit is "forced" to be close to $y_i$. In this sense it is an **influential point**. Points on the boundary of the predictor space have the most leverage. 
 
     The **Cook distance** is a popular influence diagnostic
 $$
-D_i = \frac{(\hat{y}_i - \hat{y}_{(i)})^T(\hat{y}_i - \hat{y}_{(i)})}{p \hat{\sigma}^2} = \frac{1}{p} r_i^2 \frac{h_i}{1 - h_i},
+D_i = \frac{(\widehat{y}_i - \widehat{y}_{(i)})^T(\widehat{y}_i - \widehat{y}_{(i)})}{p \widehat{\sigma}^2} = \frac{1}{p} r_i^2 \frac{h_i}{1 - h_i},
 $$
-where $r_i$ are the standardized residuals and $\hat{y}_{(i)}$ are the predicted values if the $i$-th observation is dropped from data. A large residual combined with a large leverage results in
+where $r_i$ are the standardized residuals and $\widehat{y}_{(i)}$ are the predicted values if the $i$-th observation is dropped from data. A large residual combined with a large leverage results in
 a larger Cook statistic.  
 
-- Graphical diagnostics reveal a few potential **outliers**
+- Above graphical diagnostics reveal a few potential **outliers**
 ```{r}
 gavote %>% 
   slice(c(3, 9, 96, 120)) %>%
@@ -348,9 +358,9 @@ gavote %>%
 
 ## Robust regression
 
-- In presence of outliers, if these outliers represent data entry errors, then we can remove these observations and proceed with linear regression. 
+- In presence of outliers, if these outliers represent data entry errors, then we can simply remove these observations and proceed with linear regression. 
 
-- If these outliers are realy observations, then we can use robust linear regression.
+- If these outliers are real observations, then we can use robust linear regression.
 ```{r}
 library(MASS)
 rlmodi <- rlm(undercount ~ cperAA + cpergore * usage + equip, gavote)
@@ -364,18 +374,16 @@ p-values are not reported because inference for robust model is much harder than
 
 - Transformation of variables can alleviate violation of certain assumptions. 
 
-- In this case, **transformation of response** `undercount` is not desirable because 
+- In this case, **transformation of response** `undercount` is tricky because 
     1. minimum value of `undercount` is 0, precluding certain transformations such as log and inverse, and 
     2. after transformation the interpretation of regression coefficients becomes hard. 
 
 - Transformations of predictors are less problematic. 
 
-    - Consider using _orthogonal polynomials_ on the predictor `cperAA`.
+    - Consider using _orthogonal polynomials_ on the predictor `cperAA`. `terms` argument of `termplot` function specifies which term to plot.
 ```{r}
 plmodi <- lm(undercount ~ cperAA + poly(cpergore, 4) + usage + equip, gavote)
 summary(plmodi)
-```
-```{r}
 termplot(plmodi, partial = TRUE, terms = 2)
 ```   
 
@@ -383,17 +391,14 @@ termplot(plmodi, partial = TRUE, terms = 2)
 ```{r}
 library(splines)
 blmodi <- lm(undercount ~ cperAA + bs(cpergore, 4) + usage + equip, gavote)
-```
-
-```{r}
 termplot(blmodi, partial = TRUE, terms = 2)
 ```
 
 ## Variable selection
 
-Variable selection concerns the problem selecting the best set of variables to put in a model. There are several approaches and it is still an active research area. 
+Variable selection concerns the problem of selecting the best set of variables to put in a model. There are several approaches and it is still an active research area. 
 
-- Exhaustive search, also called **all-subset regression**, enumerates all $2^p$ submodels and selects the best one according to a criterion such as the adjusted $R^2$. The `regsubsets` function in the `leaps` package implements this search. The implementation only applies to quantitative predictors.
+- **Exhaustive search**, also called **all-subset regression**, enumerates all $2^p$ submodels and selects the best one according to a criterion such as the adjusted $R^2$. The `regsubsets` function in the `leaps` package implements this search. The implementation only applies to quantitative predictors.
 
 - When there are many predictors, all-subset regression quickly becomes computationally infeasible. **Stepwise regression** does heuristic search. A popular criterion is the **Akaike Information Criterion** (AIC)
 $$
@@ -443,8 +448,8 @@ xtabs(round(pp, 3) ~ econ + equip, pdf)
 - Predictions at some combinations of `propAA` and `equip`
 ```{r}
 pdf <- tibble(econ  = rep("middle", 15), 
-              equip = rep(levels(gavote$equip), rep(3,5)), 
-              perAA = rep(c(.11,0.23,0.35),5))
+              equip = rep(levels(gavote$equip), rep(3, 5)), 
+              perAA = rep(c(.11, 0.23, 0.35), 5))
 pp <- predict(finalm, new = pdf)
 propAA <- gl(3, 1, 15, labels = c("low", "medium", "high"))
 xtabs(round(pp, 3) ~ propAA + equip, pdf)
