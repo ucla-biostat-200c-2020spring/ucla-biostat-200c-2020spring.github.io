@@ -66,7 +66,7 @@ Following book is recommended but not required:
 
 ### Attendance
 
-I usually require class attendence. But given the COVID-19 pandemic, I understand if students cannot attend certain lectures due to medical or technical reasons. Please proactively communicate with the instructor and TA and notify us your circumstances at earliest chance. 
+I usually require class attendence. Given the COVID-19 pandemic, I understand students may not be able to attend certain lectures due to medical or technical reasons. Please proactively communicate with the instructor and TA and notify us your circumstances at earliest chance. 
 
 ### Homework
 
