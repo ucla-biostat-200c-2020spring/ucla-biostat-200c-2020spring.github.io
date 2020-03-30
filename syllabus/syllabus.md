@@ -17,7 +17,7 @@ Tue 10am-11:50pm @ Zoom <https://ucla.zoom.us/j/176728998>
 Thu 10am-10:50am @ Zoom <https://ucla.zoom.us/j/176728998>  
 Thu 11am-11:50am (Discussion) @ Zoom <https://ucla.zoom.us/j/176728998>  
 
-There will be no labs, which are replaced by office hours listed below.   
+There will be **no labs**, which are replaced by office hours listed below.   
 
 ### Instructor
 
@@ -29,8 +29,8 @@ Office hours: Tue/Thu 4pm-5pm @ Zoom <https://ucla.zoom.us/j/176728998>
 
 ### Teaching Assistant
 
-Shanpeng Li <lishanpeng0913@ucla.edu>  
-Office hours: Mon, Wed, Fri ??? @ Zoom <???>
+Shanpeng Li: <lishanpeng0913@ucla.edu>  
+Office hours: Mon/Wed/Fri 11am-12pm @ Zoom <https://ucla.zoom.us/j/803281764>
 
 ### Course Topics
 
