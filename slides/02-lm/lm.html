@@ -411,12 +411,12 @@ summary {
 ##  [9] knitr_1.28      stringr_1.4.0   xfun_0.12       digest_0.6.24  
 ## [13] rlang_0.4.4     evaluate_0.14</code></pre>
 <pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## ── Attaching packages ──────────────────────────────────────────── tidyverse 1.3.0 ──</code></pre>
+<pre><code>## ── Attaching packages ────────────────────────────────────────── tidyverse 1.3.0 ──</code></pre>
 <pre><code>## ✓ ggplot2 3.2.1     ✓ purrr   0.3.3
 ## ✓ tibble  2.1.3     ✓ dplyr   0.8.4
 ## ✓ tidyr   1.0.2     ✓ stringr 1.4.0
 ## ✓ readr   1.3.1     ✓ forcats 0.4.0</code></pre>
-<pre><code>## ── Conflicts ─────────────────────────────────────────────── tidyverse_conflicts() ──
+<pre><code>## ── Conflicts ───────────────────────────────────────────── tidyverse_conflicts() ──
 ## x dplyr::filter() masks stats::filter()
 ## x dplyr::lag()    masks stats::lag()</code></pre>
 <pre class="r"><code>library(faraway)</code></pre>
@@ -424,7 +424,8 @@ summary {
 <div id="ga-2000-us-presidential-election-data" class="section level2">
 <h2>GA 2000 US Presidential Election Data</h2>
 <p>The <code>gavote</code> data contains the voting data of Georgia (GA) in the 2000 presidential election. It is available as a dataframe.</p>
-<pre class="r"><code>gavote %&gt;% head(10)</code></pre>
+<pre class="r"><code># equivalent to head(gavote, 10)
+gavote %&gt;% head(10)</code></pre>
 <pre><code>##          equip   econ perAA rural    atlanta gore  bush other votes ballots
 ## APPLING  LEVER   poor 0.182 rural notAtlanta 2093  3940    66  6099    6617
 ## ATKINSON LEVER   poor 0.230 rural notAtlanta  821  1228    22  2071    2149
@@ -474,22 +475,35 @@ summary {
 <li><p>We are interested in the <code>undercount</code>, which is defined as <code>(ballots - votes) / ballots</code>. Does it depend on the type of voting machine <code>equip</code>, economy <code>econ</code>, percentage of African Americans <code>perAA</code>, whether the county is rural or urban <code>rural</code>, or whether the county is part of Atlanta metropolitan area <code>atlanta</code>.</p>
 <p>Let’s create a new variable <code>undercount</code></p></li>
 </ul>
-<pre class="r"><code>(gavote &lt;- gavote %&gt;%
-  mutate(undercount = (ballots - votes) / ballots))</code></pre>
+<pre class="r"><code>gavote &lt;- gavote %&gt;%
+  mutate(undercount = (ballots - votes) / ballots) %&gt;%
+  print(width = Inf)</code></pre>
 <pre><code>## # A tibble: 159 x 12
-##    county equip econ  perAA rural atlanta  gore  bush other votes ballots
-##    &lt;chr&gt;  &lt;fct&gt; &lt;fct&gt; &lt;dbl&gt; &lt;fct&gt; &lt;fct&gt;   &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;   &lt;int&gt;
-##  1 APPLI… LEVER poor  0.182 rural notAtl…  2093  3940    66  6099    6617
-##  2 ATKIN… LEVER poor  0.23  rural notAtl…   821  1228    22  2071    2149
-##  3 BACON  LEVER poor  0.131 rural notAtl…   956  2010    29  2995    3347
-##  4 BAKER  OS-CC poor  0.476 rural notAtl…   893   615    11  1519    1607
-##  5 BALDW… LEVER midd… 0.359 rural notAtl…  5893  6041   192 12126   12785
-##  6 BANKS  LEVER midd… 0.024 rural notAtl…  1220  3202   111  4533    4773
-##  7 BARROW OS-CC midd… 0.079 urban notAtl…  3657  7925   520 12102   12522
-##  8 BARTOW OS-PC midd… 0.079 urban Atlanta  7508 14720   552 22780   23735
-##  9 BEN.H… OS-PC poor  0.282 rural notAtl…  2234  2381    46  4661    5741
-## 10 BERRI… OS-CC poor  0.107 rural notAtl…  1640  2718    52  4410    4475
-## # … with 149 more rows, and 1 more variable: undercount &lt;dbl&gt;</code></pre>
+##    county   equip econ   perAA rural atlanta     gore  bush other votes ballots
+##    &lt;chr&gt;    &lt;fct&gt; &lt;fct&gt;  &lt;dbl&gt; &lt;fct&gt; &lt;fct&gt;      &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;   &lt;int&gt;
+##  1 APPLING  LEVER poor   0.182 rural notAtlanta  2093  3940    66  6099    6617
+##  2 ATKINSON LEVER poor   0.23  rural notAtlanta   821  1228    22  2071    2149
+##  3 BACON    LEVER poor   0.131 rural notAtlanta   956  2010    29  2995    3347
+##  4 BAKER    OS-CC poor   0.476 rural notAtlanta   893   615    11  1519    1607
+##  5 BALDWIN  LEVER middle 0.359 rural notAtlanta  5893  6041   192 12126   12785
+##  6 BANKS    LEVER middle 0.024 rural notAtlanta  1220  3202   111  4533    4773
+##  7 BARROW   OS-CC middle 0.079 urban notAtlanta  3657  7925   520 12102   12522
+##  8 BARTOW   OS-PC middle 0.079 urban Atlanta     7508 14720   552 22780   23735
+##  9 BEN.HILL OS-PC poor   0.282 rural notAtlanta  2234  2381    46  4661    5741
+## 10 BERRIEN  OS-CC poor   0.107 rural notAtlanta  1640  2718    52  4410    4475
+##    undercount
+##         &lt;dbl&gt;
+##  1     0.0783
+##  2     0.0363
+##  3     0.105 
+##  4     0.0548
+##  5     0.0515
+##  6     0.0503
+##  7     0.0335
+##  8     0.0402
+##  9     0.188 
+## 10     0.0145
+## # … with 149 more rows</code></pre>
 </div>
 <div id="descriptive-statistics" class="section level2">
 <h2>Descriptive statistics</h2>

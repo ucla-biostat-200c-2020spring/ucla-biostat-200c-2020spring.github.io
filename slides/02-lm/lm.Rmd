@@ -26,6 +26,7 @@ library(faraway)
 
 The `gavote` data contains the voting data of Georgia (GA) in the 2000 presidential election. It is available as a dataframe. 
 ```{r}
+# equivalent to head(gavote, 10)
 gavote %>% head(10)
 ```
 We convert it into a tibble for easy handling by tidyverse.
@@ -47,8 +48,9 @@ str(gavote)
 
     Let's create a new variable `undercount`
 ```{r}
-(gavote <- gavote %>%
-  mutate(undercount = (ballots - votes) / ballots))
+gavote <- gavote %>%
+  mutate(undercount = (ballots - votes) / ballots) %>%
+  print(width = Inf)
 ```
 
 ## Descriptive statistics
