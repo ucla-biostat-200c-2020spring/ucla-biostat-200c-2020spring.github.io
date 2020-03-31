@@ -285,7 +285,7 @@ model.matrix(lmodi) %>% head(10)
     - A larger model $\Omega$ with $p=9$ parameters and  
     - a smaller model $\omega$ with $q=3$ parameters.
     
-- The $F$-test compare the $F$-statistic
+- The $F$-test compares the $F$-statistic
 $$
 F = \frac{(\text{RSS}_{\omega} - \text{RSS}_{\Omega}) / (p - q)}{\text{RSS}_{\Omega} / (n - p)}
 $$
@@ -294,7 +294,7 @@ to its null distribution $F_{p-q, n-p}$. The small p-value 0.0028 indicates we s
 anova(lmod, lmodi)
 ```
 
-- We can carry out a similar $F$-test for each predictor in a model using the `drop1` function. The nice thing is that the factors such as `equip` and `cpergore * usage` are drooped as a group. 
+- We can carry out a similar $F$-test for each predictor in a model using the `drop1` function. The nice thing is that the factors such as `equip` and `cpergore * usage` are droped as a group. 
 ```{r}
 drop1(lmodi, test = "F")
 ```
@@ -318,7 +318,7 @@ confint(lmodi)
 
 - Typical assumptions of linear models are
     1. $\mathbb{E}(\mathbf{Y}) = \mathbf{X} \boldsymbol{\beta}$, or equivalently, $\mathbb{E}(\boldsymbol{\epsilon}) = \mathbf{0}$. That is we have included all the right variables and $Y$ depends on them linearly.   
-    2. Errors $\epsilon_i$ are independent and normally distributed with common variance $\sigma^2$. That is $\text{Var}(\widehat{\boldsymbol{\epsilon}}) = \sigma_0^2 \mathbf{I}_n$.    
+    2. Errors $\epsilon_i$ are independent and normally distributed with common variance $\sigma^2$. That is $\widehat{\boldsymbol{\epsilon}} \sim \text{N}(\mathbf{0}, \sigma_0^2 \mathbf{I}_n)$.    
     We'd like to check these assumptions using graphical or numerical approaches. 
 
 - Four commonly used diagnostic plots can be conveniently obtained by `plot` function.  
