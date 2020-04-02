@@ -132,11 +132,11 @@ where, in terms of $n$ data points,
 $$
 \mathbf{y} = \begin{pmatrix} y_1 \\ \vdots \\ y_n \end{pmatrix}, \quad \mathbf{X} = \begin{pmatrix}
 1 & x_{11} & x_{12} & \cdots & x_{1,p-1} \\
-2 & x_{21} & x_{22} & \cdots & x_{2,p-1} \\
+1 & x_{21} & x_{22} & \cdots & x_{2,p-1} \\
 \vdots & & \vdots & & \vdots \\
-n & x_{n1} & x_{n2} & \cdots & x_{n,p-1}
+1 & x_{n1} & x_{n2} & \cdots & x_{n,p-1}
 \end{pmatrix}, \quad 
-\boldsymbol{\beta} = \begin{pmatrix} \beta_1 \\ \vdots \\ \beta_p \end{pmatrix}, \quad \boldsymbol{\epsilon} = \begin{pmatrix} \epsilon_1 \\ \vdots \\ \epsilon_n \end{pmatrix}.
+\boldsymbol{\beta} = \begin{pmatrix} \beta_0 \\ \vdots \\ \beta_{p-1} \end{pmatrix}, \quad \boldsymbol{\epsilon} = \begin{pmatrix} \epsilon_1 \\ \vdots \\ \epsilon_n \end{pmatrix}.
 $$
 
 - The **least squares estimate** of $\boldsymbol{\beta}$, called $\widehat{\boldsymbol{\beta}}$, minimizes
