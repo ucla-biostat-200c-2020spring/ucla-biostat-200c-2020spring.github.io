@@ -111,10 +111,10 @@ ggplot(data = data.frame(x = 0), mapping = aes(x = x)) + # null data
 - We use **method of maximum likelihood** (MLE) to estimate the parameters $\beta_0, \ldots, \beta_q$. Given $n$ data points $(y_i, \mathbf{x}_i)$, $i=1,\ldots,n$, the log-likelihood is
 \begin{eqnarray*}
 \ell(\boldsymbol{\beta}) &=& \sum_i \log \left[p_i^{y_i} (1 - p_i)^{1 - y_i}\right] \\
-&=& y_i \log p_i + (1 - y_i) \log (1 - p_i) \\
-&=& y_i \log \frac{e^{\eta_i}}{1 + e^{\eta_i}} + (1 - y_i) \log \frac{1}{1 + e^{\eta_i}} \\
-&=& y_i \eta_i - \log (1 + e^{\eta_i}) \\
-&=& y_i \cdot \mathbf{x}_i^T \boldsymbol{\beta} - \log (1 + e^{\mathbf{x}_i^T \boldsymbol{\beta}}).
+&=& \sum_i \left[ y_i \log p_i + (1 - y_i) \log (1 - p_i) \right] \\
+&=& \sum_i \left[ y_i \log \frac{e^{\eta_i}}{1 + e^{\eta_i}} + (1 - y_i) \log \frac{1}{1 + e^{\eta_i}}  \right] \\
+&=& \sum_i \left[ y_i \eta_i - \log (1 + e^{\eta_i}) \right] \\
+&=& \sum_i \left[ y_i \cdot \mathbf{x}_i^T \boldsymbol{\beta} - \log (1 + e^{\mathbf{x}_i^T \boldsymbol{\beta}}) \right].
 \end{eqnarray*}
 HW1: show that the log-likelihood function of logistic regression is a concave function in $\boldsymbol{\beta}$. If you need a refresher how to take derivatives with respect to a vector or matrix, see [Biostat 216 notes](https://ucla-biostat216-2019fall.github.io/slides/16-matrixcalc/16-matrixcalc.html).
 
@@ -157,6 +157,16 @@ $$
 is called **odds** (of an event). 
 
     Therefore $\beta_1$ can be interpreted as a unit increase in $x_1$ with $x_2$ held fixed increases the **log-odds** of success by $\beta_1$, or increase the odds of success by a factor of $e^{\beta_1}$. 
+
+- The `gtsummary` package presents regression results in a much nicer way that facilitates interpretation.
+```{r}
+library(gtsummary)
+lmod %>%
+  tbl_regression() %>%
+  bold_labels() %>%
+  bold_p(t = 0.05)
+```
+    
 - **Exercise**: Interpret the regression coefficients from `wcgs` fit.  
 ```{r}
 # same as lmod$coefficients
@@ -326,7 +336,7 @@ wcgs %>%
   print(width = Inf)
 ```
 
-## Model selection
+## Model selection by AIC
 
 - We can perform sequential search using the Akaike information criterion (AIC)
 $$
@@ -343,9 +353,103 @@ biglm <-glm(chd ~ age + height + weight + bmi + sdp + dbp + chol + dibep + cigs 
 and then do sequential search using the `step` function
 ```{r}
 smalllm <- step(biglm, trace = TRUE)
-summary(smalllm)
+smalllm %>%
+  tbl_regression() %>%
+  bold_labels() %>%
+  bold_p(t = 0.05)
 ```
 
-## Cross validation
+## Model selection by lasso
 
-Logistic regression is frequently used for classification purpose. Cross validation provides one way to evaluate model. We will use `caret` package to compare the two logistic regression fits `bigglm` and `smallglm`. TODO
+- A modern approach for model selection is the **lasso**, which minimizes the function   
+$$
+  - \ell(\boldsymbol{\beta}) + \lambda \sum_{j=1}^q |\beta_j|,  
+$$   
+where $\ell(\boldsymbol{\beta})$ is the log-likelihood of logistic regression and $\lambda>0$ is a tuning parameter. We notice that   
+    - when $\lambda = \infty$, all non-intercept regression coefficients will be pushed to 0, and   
+    - when $\lambda = 0$, the regression coefficients are same as those from regular logistic regression.  
+If we vary $\lambda$ from 0 to larger values, we will obtain intermediate models with lesser and lesser preditors. This way we are achieving continuous model selection.
+
+- For details of `glmnet` package, see the vignette at <https://web.stanford.edu/~hastie/glmnet/glmnet_alpha.html>
+
+- How do we choose $\lambda$, which determines the model size? One natural idea is to split the data into a training set and a validation set. The training set is used to fit the logistic regression at different $\lambda$ values. The the validation set is used to evaluate and compare the performance of different models. We will choose the model that gives the best performance on the validation set.
+
+First let's remove cases with missing values
+```{r}
+(wcgs <- wcgs %>% 
+  select(-c(behave, typechd, timechd)) %>%
+  drop_na())
+```
+split data into 80% training cases and 20% validation cases.
+```{r}
+library(glmnet)
+library(caret)
+
+# set seed for reproducibility
+set.seed(200)
+
+# list = FALSE, request result to be in a matrix (of row position) not a list
+training_samples <- wcgs$chd %>%
+  createDataPartition(p = 0.8, list = FALSE)
+(train_data <- wcgs[training_samples, ])
+(val_data <- wcgs[-training_samples, ])
+```
+The `glmnet` package takes a matrix (of predictors) and a vector (of responses) as input. We use `model.matrix` function to create them.
+```{r}
+x_train <- model.matrix(
+  chd ~ - 1 + age + height + weight + bmi + sdp + dbp + chol + dibep + cigs + arcus, 
+  data = train_data)
+x_train %>% head(10)
+y_train <- ifelse(train_data$chd == "yes", 1, 0)
+y_train %>% head(10)
+```
+Fit lasso regression and plot solution path:
+```{r}
+lasso_fit <- glmnet(x_train, y_train, family = "binomial", alpha = 1)
+summary(lasso_fit)
+plot(lasso_fit, xvar = "lambda", label = TRUE)
+```
+
+Here   
+    - $\alpha = 1$ corresponds to the lasso regression, in the family of **elastic net penalties**
+$$
+(1 - \alpha) \|\boldsymbol{\beta}\|_2^2 / 2 + \alpha \|\boldsymbol{\beta}\|_1.
+$$  
+    - Other choises for `xvar` are `"lambda"` for log lambda value, `"norm"` for the $\ell_1$-norm of the coefficients (default), and `"dev"` for the percentage of deviance explained.  
+
+Now we can evaluate performance of the models (corresponding to different $\lambda$ values) on the test set.
+```{r}
+# form y and x from test data
+x_val <- model.matrix(
+  chd ~ - 1 + age + height + weight + bmi + sdp + dbp + chol + dibep + cigs + arcus, 
+  data = val_data)
+y_val <- ifelse(val_data$chd == "yes", 1, 0)
+# predict test case probabilities at different \lambda values and calculate test deviance
+pred_val <- predict(lasso_fit, newx = x_val, type = "response", s = lasso_fit$lambda)
+dev_val <- colSums(y_val * log(pred_val) + (1 - y_val) * log(1 - pred_val))
+tibble(lambda = lasso_fit$lambda, dev_val = dev_val) %>%
+  ggplot() + 
+  geom_point(mapping = aes(x = lambda, y = dev_val)) + 
+  scale_x_log10() +
+  labs(y = "Binomial deviance on validation set", x = "Lambda")
+```
+From the graph, it seems that $\lambda = 0.05$ yields a model that performs best on the validation set. Now the question is whether we should make decision on this single training-validation split? 
+
+- A common strategy is to use **cross validation**. 
+```{r}
+x_all <- model.matrix(
+  chd ~ - 1 + age + height + weight + bmi + sdp + dbp + chol + dibep + cigs + arcus, 
+  data = wcgs)
+y_all <- ifelse(wcgs$chd == "yes", 1, 0)
+```
+```{r}
+set.seed(200)
+cv_lasso <- cv.glmnet(x_all, y_all, alpha = 1, family = "binomial")
+plot(cv_lasso)
+```
+The plot displays the cross-validation error according to the log of lambda. The left dashed vertical line indicates that the log of the optimal value of lambda is approximately -6.4, which is the one that minimizes the prediction error. This lambda value will give the most accurate model. The exact value of lambda and corresponding model can be viewed as follow:
+```{r}
+cv_lasso$lambda.min
+coef(cv_lasso, cv_lasso$lambda.min)
+```
+We see that this model differs from the best model chosen by AIC by replacing the predictor `bmi` by `weight`.
