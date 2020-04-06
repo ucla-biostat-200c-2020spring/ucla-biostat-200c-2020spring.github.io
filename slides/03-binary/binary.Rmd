@@ -24,14 +24,14 @@ library(faraway)
 
 ## Heart disease example
 
-The dataframe `wcgs` in `faraway` package contains data from theWestern Collaborative Group Study.
+The dataframe `wcgs` in `faraway` package contains data from the Western Collaborative Group Study.
 ```{r}
 wcgs %>% head(10)
 ```
 We convert the dataframe into a tibble for compatibility with tidyverse.
 ```{r}
 wcgs <- wcgs %>% 
-  as_tibble(row_names = "year") %>%
+  as_tibble(row_names = "id") %>%
   print(width = Inf)
 ```
 
@@ -97,10 +97,10 @@ p = g^{-1}(\eta) = \frac{e^\eta}{1 + e^\eta}
 $$
 is called the **inverse link function**. This particular function (inverse logit) is also called the **logistic function**. A graph of the logistic function:
 ```{r}
-ggplot(data = data.frame(x = 0), mapping = aes(x = x)) + # null data
+ggplot(data = tibble(x = 0), mapping = aes(x = x)) + # null data
   stat_function(fun = ilogit) + # ilogit is from faraway
   xlim(-6, 6) + 
-  labs(x = expression(eta), y = "p")
+  labs(x = expression(eta), y = "p", title = "Logistic function (inverse link)")
 # curve(ilogit(x), -6, 6, xlab = expression(eta), ylab = "p")
 ```
 
@@ -108,7 +108,9 @@ ggplot(data = data.frame(x = 0), mapping = aes(x = x)) + # null data
 
 ## Fitting logistic regression
 
-- We use **method of maximum likelihood** (MLE) to estimate the parameters $\beta_0, \ldots, \beta_q$. Given $n$ data points $(y_i, \mathbf{x}_i)$, $i=1,\ldots,n$, the log-likelihood is
+- We use **method of maximum likelihood** (MLE) to estimate the parameters $\beta_0, \ldots, \beta_q$. 
+
+- Given $n$ data points $(y_i, \mathbf{x}_i)$, $i=1,\ldots,n$, the **log-likelihood** is
 \begin{eqnarray*}
 \ell(\boldsymbol{\beta}) &=& \sum_i \log \left[p_i^{y_i} (1 - p_i)^{1 - y_i}\right] \\
 &=& \sum_i \left[ y_i \log p_i + (1 - y_i) \log (1 - p_i) \right] \\
@@ -118,7 +120,7 @@ ggplot(data = data.frame(x = 0), mapping = aes(x = x)) + # null data
 \end{eqnarray*}
 HW1: show that the log-likelihood function of logistic regression is a concave function in $\boldsymbol{\beta}$. If you need a refresher how to take derivatives with respect to a vector or matrix, see [Biostat 216 notes](https://ucla-biostat216-2019fall.github.io/slides/16-matrixcalc/16-matrixcalc.html).
 
-    Maximization of this log-likehood function can be carried out by the Newton-Raphson algorithm.
+- Maximization of this log-likehood function can be carried out by the Newton-Raphson (also known as Fisher scoring) algorithm.
 ```{r}
 (lmod <- glm(chd ~ height + cigs, family = binomial, wcgs))
 ```
@@ -158,11 +160,18 @@ is called **odds** (of an event).
 
     Therefore $\beta_1$ can be interpreted as a unit increase in $x_1$ with $x_2$ held fixed increases the **log-odds** of success by $\beta_1$, or increase the odds of success by a factor of $e^{\beta_1}$. 
 
-- The `gtsummary` package presents regression results in a much nicer way that facilitates interpretation.
+- The `gtsummary` package presents regression results in a much nicer way that facilitates interpretation. Summarize the log-odds:
 ```{r}
 library(gtsummary)
 lmod %>%
   tbl_regression() %>%
+  bold_labels() %>%
+  bold_p(t = 0.05)
+```
+Summarize the odds:
+```{r}
+lmod %>%
+  tbl_regression(intercept = TRUE, exponentiate = TRUE) %>%
   bold_labels() %>%
   bold_p(t = 0.05)
 ```
@@ -195,14 +204,16 @@ p1 / p2
 ## Inference (analysis of deviance)
 
 - The **deviance** of a logistic regression fit is 
-$$
-D = -2 \sum_i \left[ \widehat{p}_i \text{logit}(\widehat{p}_i) + \log (1 - \widehat{p}_i) \right].
-$$
+\begin{eqnarray*}
+D &=& 2 \sum_i \left[ y_i \log y_i + (1 - y_i) \log (1 - y_i) \right] \\
+ && - 2 \sum_i \left[ y_i \log \widehat{p}_i + (1 - y_i) \log (1 - \widehat{p}_i) \right] \\
+&=& - 2 \sum_i \left[ y_i \log \widehat{p}_i + (1 - y_i) \log (1 - \widehat{p}_i) \right].
+\end{eqnarray*}
 It comes from the likelihood ratio test (LRT) statistic 
 $$
 2 \log \frac{L_{\Omega}}{L_{\omega}},
 $$
-where $\Omega$ is the full/saturated model (same number of parameters as observations) and $\omega$ is the smaller model. 
+where $\Omega$ is the full/saturated model (same number of parameters as observations) and $\omega$ is the smaller model. The usual goodness of fit test using $\chi_{n-q-1}^2$ asymptotic null distribution can **not** be applied here since we only have a single observation for each predictor pattern. This is different from the binomial model in next chapter.
 
 - In the model output, the _residual deviance_, denoted $D_L$, is the devience of the current model and the _null deviance_, denoted $D_S$, is the deviance of the model with just an intercept term. Assuming the null model, the test statistic $D_S - D_L$ is asymptotically distributed $\chi_{\ell - s}^2$. In our case, the test statistic is
 ```{r}
@@ -210,7 +221,7 @@ lmod$null.deviance - lmod$deviance
 ```
 giving p-value
 ```{r}
-1 - pchisq(lmod$null.deviance - lmod$deviance, 2)
+pchisq(lmod$null.deviance - lmod$deviance, 2, lower.tail = FALSE)
 ```
 Therefore our model gives a significantly better fit than the null (intercept-only) model.
 
@@ -319,13 +330,24 @@ wcgs %>%
 ```
 **Question**: is there a concern that the deviance residuals are not centered around 0? 
 
-- **Exercise**: Do similar binned plots for deviance residuals against `weights` and deviance residuals vs `cigs`.
+- **Exercise**: Do similar binned plots for deviance residuals against `weights` and deviance residuals vs `cigs` to check the linearity assumption. 
 
 - QQ plot is not helpful since there is no reason these deviance residuals are approximately standard normal.
 ```{r}
 qqnorm(devres)
 ```
-Half-normal plot can help detect unusual cases in predictor space.
+Half-normal plot can help detect unusual cases in predictor space. For logistic regression, we use the generalized hat matrix
+$$
+\mathbf{H} = \widehat{\mathbf{W}}^{1/2} \mathbf{X}^T (\mathbf{X}^T \widehat{\mathbf{W}} \mathbf{X})^{-1} \mathbf{X} \widehat{\mathbf{W}}^{1/2},
+$$
+where 
+$$
+\widehat{\mathbf{W}} = \begin{pmatrix} 
+\widehat{p}_1 (1 - \widehat{p}_1) & \\
+& \ddots & \\
+& & \widehat{p}_n (1 - \widehat{p}_n)
+\end{pmatrix}.
+$$
 ```{r}
 halfnorm(hatvalues(lmod))
 ```
@@ -347,8 +369,8 @@ We start from a rich enough model
 wcgs <- wcgs %>%
   # 1 in = 0.0254 m, 1 lb = 0.4536 kg
   mutate(bmi = 703 * weight / height)
-biglm <-glm(chd ~ age + height + weight + bmi + sdp + dbp + chol + dibep + cigs + arcus, 
-            family = binomial, data = wcgs)
+biglm <- glm(chd ~ age + height + weight + bmi + sdp + dbp + chol + dibep + cigs + arcus,
+             family = binomial, data = wcgs)
 ```
 and then do sequential search using the `step` function
 ```{r}
@@ -363,7 +385,7 @@ smalllm %>%
 
 - A modern approach for model selection is the **lasso**, which minimizes the function   
 $$
-  - \ell(\boldsymbol{\beta}) + \lambda \sum_{j=1}^q |\beta_j|,  
+  - n^{-1} \ell(\boldsymbol{\beta}) + \lambda \sum_{j=1}^q |\beta_j|,  
 $$   
 where $\ell(\boldsymbol{\beta})$ is the log-likelihood of logistic regression and $\lambda>0$ is a tuning parameter. We notice that   
     - when $\lambda = \infty$, all non-intercept regression coefficients will be pushed to 0, and   
@@ -372,9 +394,9 @@ If we vary $\lambda$ from 0 to larger values, we will obtain intermediate models
 
 - For details of `glmnet` package, see the vignette at <https://web.stanford.edu/~hastie/glmnet/glmnet_alpha.html>
 
-- How do we choose $\lambda$, which determines the model size? One natural idea is to split the data into a training set and a validation set. The training set is used to fit the logistic regression at different $\lambda$ values. The the validation set is used to evaluate and compare the performance of different models. We will choose the model that gives the best performance on the validation set.
+- How do we choose $\lambda$, which determines the model size? One natural idea is to split the data into a training set and a validation set. The **training set** is used to fit the logistic regression at different $\lambda$ values. Then the **validation set** is used to evaluate and compare the performance of different models. We will choose the model that gives the best performance on the validation set.
 
-First let's remove cases with missing values
+- First let's remove cases with missing values
 ```{r}
 (wcgs <- wcgs %>% 
   select(-c(behave, typechd, timechd)) %>%
@@ -394,7 +416,7 @@ training_samples <- wcgs$chd %>%
 (train_data <- wcgs[training_samples, ])
 (val_data <- wcgs[-training_samples, ])
 ```
-The `glmnet` package takes a matrix (of predictors) and a vector (of responses) as input. We use `model.matrix` function to create them.
+The `glmnet` package takes a matrix (of predictors) and a vector (of responses) as input. We use `model.matrix` function to create them. `glmnet` will add intercept by default, so we drop intercept term when forming `x` matrix.
 ```{r}
 x_train <- model.matrix(
   chd ~ - 1 + age + height + weight + bmi + sdp + dbp + chol + dibep + cigs + arcus, 
@@ -417,14 +439,14 @@ $$
 $$  
     - Other choises for `xvar` are `"lambda"` for log lambda value, `"norm"` for the $\ell_1$-norm of the coefficients (default), and `"dev"` for the percentage of deviance explained.  
 
-Now we can evaluate performance of the models (corresponding to different $\lambda$ values) on the test set.
+- Now we can evaluate performance of the models (corresponding to different $\lambda$ values) on the validation set.
 ```{r}
-# form y and x from test data
+# form y and x from validation data
 x_val <- model.matrix(
   chd ~ - 1 + age + height + weight + bmi + sdp + dbp + chol + dibep + cigs + arcus, 
   data = val_data)
 y_val <- ifelse(val_data$chd == "yes", 1, 0)
-# predict test case probabilities at different \lambda values and calculate test deviance
+# predict validation case probabilities at different \lambda values and calculate test deviance
 pred_val <- predict(lasso_fit, newx = x_val, type = "response", s = lasso_fit$lambda)
 dev_val <- colSums(y_val * log(pred_val) + (1 - y_val) * log(1 - pred_val))
 tibble(lambda = lasso_fit$lambda, dev_val = dev_val) %>%
@@ -433,9 +455,9 @@ tibble(lambda = lasso_fit$lambda, dev_val = dev_val) %>%
   scale_x_log10() +
   labs(y = "Binomial deviance on validation set", x = "Lambda")
 ```
-From the graph, it seems that $\lambda = 0.05$ yields a model that performs best on the validation set. Now the question is whether we should make decision on this single training-validation split? 
+From the graph, it seems that $\lambda = 0.05$ yields a model that performs best on the validation set.  
 
-- A common strategy is to use **cross validation**. 
+- Now the question is whether we should make decision on this single training-validation split? A common strategy is to use **cross validation**. 
 ```{r}
 x_all <- model.matrix(
   chd ~ - 1 + age + height + weight + bmi + sdp + dbp + chol + dibep + cigs + arcus, 
@@ -444,10 +466,10 @@ y_all <- ifelse(wcgs$chd == "yes", 1, 0)
 ```
 ```{r}
 set.seed(200)
-cv_lasso <- cv.glmnet(x_all, y_all, alpha = 1, family = "binomial")
+cv_lasso <- cv.glmnet(x_all, y_all, alpha = 1, family = "binomial", type.measure = "deviance")
 plot(cv_lasso)
 ```
-The plot displays the cross-validation error according to the log of lambda. The left dashed vertical line indicates that the log of the optimal value of lambda is approximately -6.4, which is the one that minimizes the prediction error. This lambda value will give the most accurate model. The exact value of lambda and corresponding model can be viewed as follow:
+The plot displays the cross-validation error (devience by default) according to the log of lambda. The left dashed vertical line indicates that the log of the optimal value of lambda is approximately -6.4, which is the one that minimizes the prediction error. This lambda value will give the most accurate model. The exact value of lambda and corresponding model can be viewed as follow:
 ```{r}
 cv_lasso$lambda.min
 coef(cv_lasso, cv_lasso$lambda.min)
