@@ -4,6 +4,8 @@
 .Ruserdata
 *_cache/
 *_files/
+hw*sol.*
+turn_hw*_to_hw*.*
 
 .DS_Store
 scripts/
