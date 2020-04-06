@@ -259,6 +259,14 @@ gavote <- gavote %>%
 lmodi <- lm(undercount ~ cperAA + cpergore * usage + equip, gavote)
 summary(lmodi)
 ```
+The `gtsummary` package offers a more sensible diplay of regression results.
+```{r}
+library(gtsummary)
+lmodi %>%
+  tbl_regression() %>%
+  bold_labels() %>%
+  bold_p(t = 0.05)
+```
 
 - From the output, we learn that the model is
 \begin{eqnarray*}
@@ -342,19 +350,33 @@ The diagonal entries of the **hat matrix**, $h_i = H_{ii}$, are called **leverag
 $$
 \text{Var}(\widehat{\boldsymbol{\epsilon}}) = \text{Var}(\mathbf{Y} - \mathbf{X} \widehat{\boldsymbol{\beta}}) = \text{Var} [(\mathbf{I} - \mathbf{H}) \mathbf{Y}] = (\mathbf{I} - \mathbf{H}) \text{Var}(\mathbf{Y}) (\mathbf{I} - \mathbf{H}) = \sigma^2 (\mathbf{I} - \mathbf{H}).
 $$
-If $h_i$ is large, then $\text{var}(\widehat{\epsilon_i}) = \sigma^2 (1 - h_i)$ is small. The fit is "forced" to be close to $y_i$. In this sense it is an **influential point**. Points on the boundary of the predictor space have the most leverage. 
+If $h_i$ is large, then $\text{var}(\widehat{\epsilon_i}) = \sigma^2 (1 - h_i)$ is small. The fit is "forced" to be close to $y_i$. Points on the boundary of the predictor space have the most leverage. 
 
-    The **Cook distance** is a popular influence diagnostic
+- The **Cook distance** is a popular influence diagnostic
 $$
 D_i = \frac{(\widehat{y}_i - \widehat{y}_{(i)})^T(\widehat{y}_i - \widehat{y}_{(i)})}{p \widehat{\sigma}^2} = \frac{1}{p} r_i^2 \frac{h_i}{1 - h_i},
 $$
-where $r_i$ are the standardized residuals and $\widehat{y}_{(i)}$ are the predicted values if the $i$-th observation is dropped from data. A large residual combined with a large leverage results in
-a larger Cook statistic.  
+where $r_i$ are the standardized residuals and $\widehat{y}_{(i)}$ are the predicted values if the $i$-th observation is dropped from data. A large residual combined with a large leverage results in a larger Cook statistic. In this sense it is an **influential point**.  
 
-- Above graphical diagnostics reveal a few potential **outliers**
+  Let's display counties with Cook distance $>0.1$. These are those two counties with unusual large `undercount`.
 ```{r}
 gavote %>% 
-  slice(c(3, 9, 96, 120)) %>%
+  mutate(cook = cooks.distance(lmodi)) %>%
+  filter(cook >= 0.1) %>%
+  print(width = Inf)
+```
+
+- Another useful plot to inspect potential outliers in positive values is the **half-normal plot**. Here we plot the sorted leverages $h_i$ against the standard normal quantiles $\Phi^{-1} \left(\frac{n+i}{2n + 1}\right)$. We do not expect a necessary straight line, just look for outliers, which is far away from the rest of the data.
+```{r}
+# this function is available from faraway package
+halfnorm(hatvalues(lmodi), ylab = "Sorted leverages")
+```
+These two counties have unusually large leverages. They are actually the only counties that use paper ballot. 
+```{r}
+gavote %>%
+  # mutate(hi = hatvalues(lmodi)) %>%
+  # filter(hi > 0.4) %>%
+  slice(c(103, 131)) %>%
   print(width = Inf)
 ```
 
@@ -382,18 +404,26 @@ p-values are not reported because inference for robust model is much harder than
 
 - Transformations of predictors are less problematic. 
 
-    - Consider using _orthogonal polynomials_ on the predictor `cperAA`. `terms` argument of `termplot` function specifies which term to plot.
+    - Consider using _orthogonal polynomials_ on the predictor `cperAA`. 
 ```{r}
 plmodi <- lm(undercount ~ cperAA + poly(cpergore, 4) + usage + equip, gavote)
-summary(plmodi)
-termplot(plmodi, partial = TRUE, terms = 2)
-```   
+# summary(plmodi)
+plmodi %>%
+  tbl_regression() %>%
+  bold_labels() %>%
+  bold_p(t = 0.05)
+```
+
+    `termplot` graphically summarizes the effect of each predictor. `terms` argument of `termplot` function specifies which term to plot. Pratial residuals are predictor values plus residual values.
+```{r}
+termplot(plmodi, partial.resid = TRUE, terms = 2)
+```
 
     - _B-slines_:
 ```{r}
 library(splines)
 blmodi <- lm(undercount ~ cperAA + bs(cpergore, 4) + usage + equip, gavote)
-termplot(blmodi, partial = TRUE, terms = 2)
+termplot(blmodi, partial.resid = TRUE, terms = 2)
 ```
 
 ## Variable selection
@@ -416,11 +446,11 @@ The `step` command sequentially eliminates terms to minimize the AIC:
 (smallm <- step(biglm, trace = TRUE))
 ```
 
-- We could further refine the model by $F$-tests.
+- We could further refine the model by F-tests.
 ```{r}
 drop1(smallm, test = "F")
 ```
-It shows `usage:perAA` term can be dropped. 
+It shows `usage:perAA` term can be dropped.
 
 ## Final model
 
@@ -429,10 +459,12 @@ It shows `usage:perAA` term can be dropped.
 finalm <- lm(undercount ~ equip + econ + perAA + equip:econ + equip:perAA, gavote)
 summary(finalm)
 ```
+
 The singularities occur because there are no counties that use `PAPER` for voting and economy is `poor` or `rich`
 ```{r}
 gavote %>%
-  filter(equip == "PAPER" && econ %in% c("poor", "rich"))
+  filter(equip == "PAPER" && econ %in% c("poor", "rich")) %>%
+  count()
 ```
 
 - Let's attempt predictions at all combination of levels of `econ` and `equip` at median `perAA`
