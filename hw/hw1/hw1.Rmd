@@ -237,7 +237,7 @@ What assumptions of logistic regression may be violated by this data set?
 
 ### Q2.4 
 
-Run a logistic regression, using variables `state` to `percent_rural` as predictors. 
+Run a logistic regression, using variables `state`, ..., `percent_rural` as predictors. 
 
 ### Q2.5 
 
@@ -245,11 +245,11 @@ Interpret the regression coefficients of 3 significant predictors with p-value <
 
 ### Q2.6 
 
-Perform an analysis of deviance to evaluate the fitted model against the model with just intercept. 
+Apply analysis of deviance to (1) evaluate the goodness of fit of the model and (2) compare the model to the intercept-only model. 
 
 ### Q2.7
 
-Perform an analysis of deviance to evaluate the significance of each predictor. Diplay the 10 most significant predictors.
+Perform analysis of deviance to evaluate the significance of each predictor. Diplay the 10 most significant predictors.
 
 ### Q2.8
 
