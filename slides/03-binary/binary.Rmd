@@ -213,7 +213,9 @@ It comes from the likelihood ratio test (LRT) statistic
 $$
 2 \log \frac{L_{\Omega}}{L_{\omega}},
 $$
-where $\Omega$ is the full/saturated model (same number of parameters as observations) and $\omega$ is the smaller model. The usual goodness of fit test using $\chi_{n-q-1}^2$ asymptotic null distribution can **not** be applied here since we only have a single observation for each predictor pattern. This is different from the binomial model in next chapter.
+where $\Omega$ is the full/saturated model (same number of parameters as observations) and $\omega$ is the smaller model. 
+
+- The usual goodness of fit test using $\chi_{n-q-1}^2$ asymptotic null distribution can **not** be applied here since we only have a single observation for each predictor pattern. This is different from the binomial model in next chapter. The Hosmer-Lemeshow test partitions the predicted probailities into $J$ bins and then carries out a Pearson $\chi^2$ type test to assess the goodness of fit (ELMR 2.6).
 
 - In the model output, the _residual deviance_, denoted $D_L$, is the devience of the current model and the _null deviance_, denoted $D_S$, is the deviance of the model with just an intercept term. Assuming the null model, the test statistic $D_S - D_L$ is asymptotically distributed $\chi_{\ell - s}^2$. In our case, the test statistic is
 ```{r}
