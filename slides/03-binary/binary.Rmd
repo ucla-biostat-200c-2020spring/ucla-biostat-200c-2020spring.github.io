@@ -1,7 +1,7 @@
 ---
 title: "Binary Response (ELMR Chapter 2)"
 author: "Dr. Hua Zhou @ UCLA"
-date: "Apr 2, 2020"
+date: "Apr 7, 2020"
 output:
   # ioslides_presentation: default
   html_document:
@@ -360,6 +360,88 @@ wcgs %>%
   print(width = Inf)
 ```
 
+## Goodness of fit
+
+### Hosmer-Lemeshow statistic
+
+- Intuitively if we divide observations into $J$ bins according to linear predictors $\eta$, then $y_j / n_j$ (observed proportion of ``successes") for $j$-th bin should be close to the average predicted probabilities in that bin.
+```{r}
+wcgs_binned <- wcgs %>%
+  mutate(predprob = predict(lmod, type = "response"), 
+         linpred = linpred,
+         bin = cut(linpred, breaks = unique(quantile(linpred, (1:100) / 101)))) %>%
+  group_by(bin) %>%
+  summarize(y = sum(ifelse(chd == "yes", 1, 0)), avgpred = mean(predprob), count = n()) %>%
+  mutate(se_fit = sqrt(avgpred * (1 - avgpred) / count))
+```
+```{r}
+wcgs_binned %>%
+  ggplot(mapping = aes(x = avgpred, y = y / count)) + 
+  geom_point() +
+  geom_linerange(mapping = aes(ymin = y / count - 2 * se_fit,
+                               ymax = y / count + 2 * se_fit), alpha = 0.5) +
+  geom_abline(intercept = 0, slope = 1) +
+  labs(x = "Predicted probability", y = "Observed proportion")
+```
+
+- The Hosmer-Lemeshow test formalizes this idea by testing the statistic
+$$
+X_{\text{HL}}^2 = \sum_{j=1}^J \frac{(y_i - m_j \widehat{p}_j)^2}{m_j \widehat{p}_j (1 - \widehat{p}_j)}
+$$
+against the $\chi^2$ distribution with $J-1$ degrees of freedom.
+```{r}
+# Hosmer-Lemeshow test statistic
+(hlstat <- with(wcgs_binned, sum((y - count * avgpred)^2 / (count * avgpred * (1 - avgpred)))))
+# J
+nrow(wcgs_binned)
+# p-value
+pchisq(hlstat, nrow(wcgs_binned), lower.tail = FALSE)
+```
+We see a moderate p-value, which indicates no lack of fit.
+
+### ROC curve
+
+- Logistic regression is often used as a tool for classification. 
+
+- If we choose a threshold, say 0.25, then the predicted probabilities give a classification rule
+$$
+\text{case $i$ is a} \begin{cases}
+\text{"success"} & \text{if } \widehat{p}_i \ge 0.25 \\
+\text{"failure"} & \text{if } \widehat{p}_i < 0.25
+\end{cases}.
+$$
+```{r}
+wcgs %>% 
+  mutate(predprob = predict(lmod, type = "response")) %>% 
+  mutate(predout = ifelse(predprob >= 0.25, "yes", "no")) %>%
+  xtabs(~ chd + predout, data = .)
+```
+
+- With this classification rule, we see the error rate is about
+```{r}
+(3 + 257) / (2894 + 257 + 3)
+```
+![](https://upload.wikimedia.org/wikipedia/commons/e/e7/Sensitivity_and_specificity.svg)
+The **sensitivity** is
+$$
+\frac{\text{TP}}{\text{TP + FN}} = \frac{0}{257} = 0\%
+$$
+and the **specificity** is
+$$
+\frac{\text{TN}}{\text{FP + TN}} = \frac{2894}{3 + 2894} = 99.9\%
+$$
+
+- If we lower the threshold, then we increase the sensitivity but decrease the specificity. If we plot sensitivity against 1-specificity by varying the threshold, then we get the **receiver operating characteristic (ROC)** curve. 
+```{r}
+library(pROC)
+lmod_roc <- roc(chd ~ predprob, wcgs)
+ggroc(lmod_roc)
+```
+The area under the curve (AUC) is a measure of the overal classification of the classifier. Larger AUC means better classification performance. 
+```{r}
+auc(lmod_roc)
+```
+
 ## Model selection by AIC
 
 - We can perform sequential search using the Akaike information criterion (AIC)
@@ -450,7 +532,7 @@ x_val <- model.matrix(
 y_val <- ifelse(val_data$chd == "yes", 1, 0)
 # predict validation case probabilities at different \lambda values and calculate test deviance
 pred_val <- predict(lasso_fit, newx = x_val, type = "response", s = lasso_fit$lambda)
-dev_val <- colSums(y_val * log(pred_val) + (1 - y_val) * log(1 - pred_val))
+dev_val <- -2 * colSums(y_val * log(pred_val) + (1 - y_val) * log(1 - pred_val))
 tibble(lambda = lasso_fit$lambda, dev_val = dev_val) %>%
   ggplot() + 
   geom_point(mapping = aes(x = lambda, y = dev_val)) + 
@@ -468,7 +550,8 @@ y_all <- ifelse(wcgs$chd == "yes", 1, 0)
 ```
 ```{r}
 set.seed(200)
-cv_lasso <- cv.glmnet(x_all, y_all, alpha = 1, family = "binomial", type.measure = "deviance")
+cv_lasso <- cv.glmnet(x_all, y_all, alpha = 1, family = "binomial", 
+                      type.measure = "auc")
 plot(cv_lasso)
 ```
 The plot displays the cross-validation error (devience by default) according to the log of lambda. The left dashed vertical line indicates that the log of the optimal value of lambda is approximately -6.4, which is the one that minimizes the prediction error. This lambda value will give the most accurate model. The exact value of lambda and corresponding model can be viewed as follow:
