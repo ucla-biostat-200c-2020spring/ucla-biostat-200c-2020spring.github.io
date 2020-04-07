@@ -413,7 +413,7 @@ summary {
 <p>Of primary interest to public is the risk of dying from COVID-19. A commonly used measure is case fatality rate/ratio/risk (CFR), which is defined as <span class="math display">\[
 \frac{\text{number of deaths from disease}}{\text{number of diagnosed cases of disease}}.
 \]</span> Apparently CFR is not a fixed constant; it changes with time, location, and other factors. Also CFR is different from the infection fatality rate (IFR), the probability that someone infected with COVID-19 dies from it.</p>
-<p>In this exercise, we use logistic regression to study how US country-level CFR changes according to demographic information and some health-, education-, and economy-indicators.</p>
+<p>In this exercise, we use logistic regression to study how US county-level CFR changes according to demographic information and some health-, education-, and economy-indicators.</p>
 <div id="data-sources" class="section level3">
 <h3>Data sources</h3>
 <ul>
@@ -426,12 +426,12 @@ summary {
 <p>Load the <code>tidyverse</code> package for data manipulation and visualization.</p>
 <pre class="r"><code># tidyverse of data manipulation and visualization
 library(tidyverse)</code></pre>
-<pre><code>## ── Attaching packages ─────────────────────────────────────────────────────────────────── tidyverse 1.3.0 ──</code></pre>
+<pre><code>## ── Attaching packages ──────────────────────────────────────────────────────── tidyverse 1.3.0 ──</code></pre>
 <pre><code>## ✓ ggplot2 3.2.1     ✓ purrr   0.3.3
 ## ✓ tibble  2.1.3     ✓ dplyr   0.8.4
 ## ✓ tidyr   1.0.2     ✓ stringr 1.4.0
 ## ✓ readr   1.3.1     ✓ forcats 0.4.0</code></pre>
-<pre><code>## ── Conflicts ────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+<pre><code>## ── Conflicts ─────────────────────────────────────────────────────────── tidyverse_conflicts() ──
 ## x dplyr::filter() masks stats::filter()
 ## x dplyr::lag()    masks stats::lag()</code></pre>
 <p>Read in the data of COVID-19 cases reported on 2020-04-04.</p>

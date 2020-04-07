@@ -35,7 +35,7 @@ $$
 $$
 Apparently CFR is not a fixed constant; it changes with time, location, and other factors. Also CFR is different from the infection fatality rate (IFR), the probability that someone infected with COVID-19 dies from it. 
 
-In this exercise, we use logistic regression to study how US country-level CFR changes according to demographic information and some health-, education-, and economy-indicators.
+In this exercise, we use logistic regression to study how US county-level CFR changes according to demographic information and some health-, education-, and economy-indicators.
 
 ### Data sources
 
