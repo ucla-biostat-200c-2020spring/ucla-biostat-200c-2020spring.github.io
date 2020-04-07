@@ -1,0 +1,134 @@
+---
+title: "Binomial Response (ELMR Chapter 3)"
+author: "Dr. Hua Zhou @ UCLA"
+date: "Apr 7, 2020"
+output:
+  # ioslides_presentation: default
+  html_document:
+    toc: true
+    toc_depth: 4  
+subtitle: Biostat 200C
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.align = 'center', cache = FALSE)
+```
+
+Display system information and load `tidyverse` and `faraway` packages
+```{r}
+sessionInfo()
+library(tidyverse)
+library(faraway)
+```
+`faraway` package contains the datasets in the ELMR book.
+
+## O-ring example
+
+![](https://upload.wikimedia.org/wikipedia/commons/thumb/4/44/Space_Shuttle_Challenger_%2804-04-1983%29.JPEG/300px-Space_Shuttle_Challenger_%2804-04-1983%29.JPEG)
+
+![](https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Challenger_explosion.jpg/296px-Challenger_explosion.jpg)
+
+![](https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Challenger_flight_51-l_crew.jpg/300px-Challenger_flight_51-l_crew.jpg)
+
+![](https://qph.fs.quoracdn.net/main-qimg-68daeded849b4a3a049eeb78822a68bb)
+
+- In January 1986, the space shuttle Challenger exploded 73 seconds after launch.  
+
+- The culprit is the O-ring seals in the rocket boosters. At lower temperatures, rubber becomes more brittle and is a less effective sealant. At the time of the launch, the temperature was 31°F.  
+
+-  Could the failure of the O-rings have been predicted?  
+
+- Data: 23 previous shuttle missions. Each shuttle had 2 boosters, each with 3 O-rings. We know the number of O-rings out of 6 showing some damage and the launch temperature.  
+
+```{r}
+orings <- orings %>%
+  as_tibble(rownames = "mission") %>%
+  print(width = Inf, n = Inf)
+```
+
+## Descriptive statistics
+
+There seems a pattern: lower temperature, more damages.
+```{r}
+orings %>%
+  mutate(failrate = damage / 6) %>%
+  ggplot(mapping = aes(x = temp, y = failrate)) + 
+  geom_point() + 
+  labs(x = "Temperature (F)", y = "Prop. of damage")
+```
+
+## Binomial model
+
+- We model $Y_i$ as a Binomial random variable with batch size $m_i$ and ``success" probability $p_i$
+$$
+\mathbb{P}(Y_i = y_i) = \binom{m_i}{y_i} p_i^{y_i} (1 - p_i)^{m_i - y_i}.
+$$
+
+- The parameter $p_i$ is related to the predictors $X_1, \ldots, X_{q}$ via an **inverse link function**
+$$
+p_i = \frac{e^{\eta_i}}{1 + e^{\eta_i}},
+$$
+where $\eta_i$ is the **linear predictor** or **systematic component**
+$$
+\eta_i = \beta_0 + \beta_1 x_{i1} + \cdots + \beta_{q} x_{iq} = \mathbf{x}_i^T \boldsymbol{\beta}
+$$
+
+- The log-likelihood is
+$$
+\ell(\boldsymbol{\beta}) = \sum_{i=1}^n \left[ y_i \eta_i - m_i \log ( 1 + e^{\eta_i}) + \log \binom{m_i}{y_i} \right].
+$$
+
+- The Bernoulli model in Chapter 2 is a special case with all batch sizes $m_i = 1$. 
+
+- Conversely, the Binomial model is equivalent to a Bernoulli model with $\sum_i m_i$ observations, or a Bernoulli model with observation weights $(y_i, m_i - y_i)$. 
+
+## Logistic regression
+
+For Binomial model, we input $(\text{successes}_i, \text{failures}_i)$ as responses.
+```{r}
+library(gtsummary)
+lmod <- glm(cbind(damage, 6 - damage) ~ temp, family= binomial, data = orings)
+lmod %>%
+  tbl_regression() %>%
+  bold_labels()
+```
+
+Let's fit an equivalent Bernoulli model. We get identical estimate.
+```{r}
+obs_wt = c(rbind(orings$damage, 6 - orings$damage))
+orings %>%
+  slice(rep(1:n(), each = 2)) %>% # replicate each row twice
+  mutate(damage = rep(c(1, 0), 23)) %>%
+  mutate(obs_wt = obs_wt) %>%
+  glm(damage ~ temp, weights = obs_wt, family = binomial, data = .) %>%
+  tbl_regression() %>%
+  bold_labels()
+```
+
+## Goodness of fit
+
+- To evaluate the goodness of fit of model, we compare it to the full model with number of parameters equal to the number of observations. That is the full model estimate $p_i$ by $y_i/m_i$. Therefore the deviance is
+\begin{eqnarray*}
+  D &=& 2 \sum_i y_i \log(y_i/m_i) + (m_i - y_i) \log(1 - y_i / m_i) \\
+  & & - 2 \sum_i y_i \log(\widehat{p}_i) + (m_i - y_i) \log(1 - \widehat{p}_i) \\
+  &=& 2 \sum_i y_i \log(y_i / \widehat{y}_i) + (m_i - y_i) \log(m_i - y_i)/(m_i - \widehat{y}_i),
+\end{eqnarray*}
+where $\widehat{y}_i$ are the fitted values from the model.  
+
+- When $Y$ is truely binomial and $m_i$ are relatively large, the deviance $D$ is approximately $\chi^2$ distributed with $n - q - 1$ degrees of freedom if the model is correct. The large p-value indicates that the model is an adequate fit.
+```{r}
+pchisq(lmod$deviance, lmod$df.residual, lower = FALSE)
+```
+
+- Significance of predictor `temp` can be evaluated using a similar analysis of deviance test.
+```{r}
+anova(lmod, test = "Chi")
+```
+
+## Pearson $\chi^2$
+
+
+## Overdispersion
+
+## Quasi-binomial
+

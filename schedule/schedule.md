@@ -16,7 +16,7 @@ Zoom link: <https://ucla.zoom.us/j/176728998>, for call in dial +1-669-900-6833 
 | Week | Tuesday | Thursday | Homework |  
 |:-----------|:-----------|:------------|:------------|  
 | 1 | [3/31](https://ucla-biostat-200c-2020spring.github.io/biostat200cspring2020/2020/03/31/week1-day1.html) course introduction and logistics \[[html](../slides/01-intro/intro.html)\] | [4/2](https://ucla-biostat-200c-2020spring.github.io/biostat200cspring2020/2020/04/02/week1-day2.html) review of linear regression (ELMR 1) \[[Rmd](https://raw.githubusercontent.com/ucla-biostat-200c-2020spring/ucla-biostat-200c-2020spring.github.io/master/slides/02-lm/lm.Rmd), [html](../slides/02-lm/lm.html)\] | HW1 \[[Rmd](https://raw.githubusercontent.com/ucla-biostat-200c-2020spring/ucla-biostat-200c-2020spring.github.io/master/hw/hw1/hw1.Rmd), [html](../hw/hw1/hw1.html)\] |  
-| 2 | 4/7 binary response (ELMR 2) \[[Rmd](https://raw.githubusercontent.com/ucla-biostat-200c-2020spring/ucla-biostat-200c-2020spring.github.io/master/slides/03-binary/binary.Rmd), [html](../slides/03-binary/binary.html)\] | 4/9 | HW2 |  
+| 2 | 4/7 binary response (ELMR 2) \[[Rmd](https://raw.githubusercontent.com/ucla-biostat-200c-2020spring/ucla-biostat-200c-2020spring.github.io/master/slides/03-binary/binary.Rmd), [html](../slides/03-binary/binary.html)\] | 4/9 binomial response (ELMR 3) \[[Rmd](https://raw.githubusercontent.com/ucla-biostat-200c-2020spring/ucla-biostat-200c-2020spring.github.io/master/slides/04-binomial/binomial.Rmd), [html](../slides/04-binomial/binomial.html)\] | HW2 |  
 | 3 | 4/14  | 4/16 Poisson regression | HW3 |  
 | 4 | 4/21 | 4/23 multinomial data | HW4 |
 | 5 | 4/28 GLM | 4/30 | HW5 |
