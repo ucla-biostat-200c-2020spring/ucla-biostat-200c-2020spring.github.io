@@ -411,12 +411,12 @@ summary {
 ##  [9] knitr_1.28      stringr_1.4.0   xfun_0.12       digest_0.6.24  
 ## [13] rlang_0.4.4     evaluate_0.14</code></pre>
 <pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## ── Attaching packages ─────────────────────────────────────────────────────────────────── tidyverse 1.3.0 ──</code></pre>
+<pre><code>## ── Attaching packages ───────────────────────────────────────────────────────────── tidyverse 1.3.0 ──</code></pre>
 <pre><code>## ✓ ggplot2 3.2.1     ✓ purrr   0.3.3
 ## ✓ tibble  2.1.3     ✓ dplyr   0.8.4
 ## ✓ tidyr   1.0.2     ✓ stringr 1.4.0
 ## ✓ readr   1.3.1     ✓ forcats 0.4.0</code></pre>
-<pre><code>## ── Conflicts ────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+<pre><code>## ── Conflicts ──────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
 ## x dplyr::filter() masks stats::filter()
 ## x dplyr::lag()    masks stats::lag()</code></pre>
 <pre class="r"><code>library(faraway)</code></pre>
@@ -1707,14 +1707,24 @@ summary(finalm)</code></pre>
 ## Residual standard error: 0.02 on 141 degrees of freedom
 ## Multiple R-squared:  0.4276, Adjusted R-squared:  0.3585 
 ## F-statistic: 6.195 on 17 and 141 DF,  p-value: 1.318e-10</code></pre>
-<p>The singularities occur because there are no counties that use <code>PAPER</code> for voting and economy is <code>poor</code> or <code>rich</code></p>
+<p>The coefficient for <code>equipPAPER:econrich</code> is not estimated because there are no counties that are rich and use paper ballot. The corresponding column in <span class="math inline">\(\mathbf{X}\)</span> matrix is all zeros.</p>
 <pre class="r"><code>gavote %&gt;%
-  filter(equip == &quot;PAPER&quot; &amp;&amp; econ %in% c(&quot;poor&quot;, &quot;rich&quot;)) %&gt;%
+  filter(equip == &quot;PAPER&quot; &amp; econ == &quot;rich&quot;) %&gt;%
   count()</code></pre>
 <pre><code>## # A tibble: 1 x 1
 ##       n
 ##   &lt;int&gt;
 ## 1     0</code></pre>
+<p>The coefficient for <code>equipPAPER:econpoor</code> is not estimated because there are only two counties that use paper ballot and both of them are poor. So the corresponding colmuns for <code>equipPAPER</code> and <code>equipPAPER:econpoor</code> are identical. In other words these two predictors are not identifiable. Therefore only <code>equipPAPER</code> is estimated but not <code>equipPAPER:econpoor</code>.</p>
+<pre class="r"><code>gavote %&gt;%
+  filter(equip == &quot;PAPER&quot;)</code></pre>
+<pre><code>## # A tibble: 2 x 16
+##   county equip econ  perAA usage atlanta  gore  bush other votes ballots
+##   &lt;chr&gt;  &lt;fct&gt; &lt;fct&gt; &lt;dbl&gt; &lt;fct&gt; &lt;fct&gt;   &lt;int&gt; &lt;int&gt; &lt;int&gt; &lt;int&gt;   &lt;int&gt;
+## 1 MONTG… PAPER poor  0.243 rural notAtl…  1013  1465    31  2509    2573
+## 2 TALIA… PAPER poor  0.596 rural notAtl…   556   271     5   832     881
+## # … with 5 more variables: undercount &lt;dbl&gt;, pergore &lt;dbl&gt;, perbush &lt;dbl&gt;,
+## #   cpergore &lt;dbl&gt;, cperAA &lt;dbl&gt;</code></pre>
 <ul>
 <li>Let’s attempt predictions at all combination of levels of <code>econ</code> and <code>equip</code> at median <code>perAA</code></li>
 </ul>

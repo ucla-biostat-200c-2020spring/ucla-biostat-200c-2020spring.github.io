@@ -460,11 +460,16 @@ finalm <- lm(undercount ~ equip + econ + perAA + equip:econ + equip:perAA, gavot
 summary(finalm)
 ```
 
-The singularities occur because there are no counties that use `PAPER` for voting and economy is `poor` or `rich`
+The coefficient for `equipPAPER:econrich` is not estimated because there are no counties that are rich and use paper ballot. The corresponding column in $\mathbf{X}$ matrix is all zeros.
 ```{r}
 gavote %>%
-  filter(equip == "PAPER" && econ %in% c("poor", "rich")) %>%
+  filter(equip == "PAPER" & econ == "rich") %>%
   count()
+```
+The coefficient for `equipPAPER:econpoor` is not estimated because there are only two counties that use paper ballot and both of them are poor. So the corresponding colmuns for `equipPAPER` and `equipPAPER:econpoor` are identical. In other words these two predictors are not identifiable. Therefore only `equipPAPER` is estimated but not `equipPAPER:econpoor`.
+```{r}
+gavote %>%
+  filter(equip == "PAPER")
 ```
 
 - Let's attempt predictions at all combination of levels of `econ` and `equip` at median `perAA`
