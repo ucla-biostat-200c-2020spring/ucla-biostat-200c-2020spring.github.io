@@ -39,7 +39,7 @@ In this exercise, we use logistic regression to study how US county-level CFR ch
 
 ### Data sources
 
-- `04-04-2020.csv.gz`: The data on COVID-19 confirmed cases and deaths on 2020-04-04 is retrieved from the [Johns Hopkins COVID-19 data repository](https://github.com/CSSEGISandData/COVID-19). It was downloaed from this [link](https://github.com/CSSEGISandData/COVID-19) (commit 0174f38).
+- `04-04-2020.csv.gz`: The data on COVID-19 confirmed cases and deaths on 2020-04-04 is retrieved from the [Johns Hopkins COVID-19 data repository](https://github.com/CSSEGISandData/COVID-19). It was downloaded from this [link](https://github.com/CSSEGISandData/COVID-19) (commit 0174f38).
 
 - `us-county-health-rankings-2020.csv.gz`: The 2020 County Health Ranking Data was released by [County Health Rankings](https://www.countyhealthrankings.org). The data was downloaded from the [Kaggle Uncover COVID-19 Challenge](https://www.kaggle.com/roche-data-science-coalition/uncover) (version 1).
 
@@ -229,7 +229,7 @@ Read and run above code to generate a data frame `county_data` that includes cou
 
 ### Q2.2
 
-What assumptions of CFR might be violated by defining CFR as `deaths/confirmed` from this data set? With acknowledgement of these severe limitation, we continue to use `deaths/confirmed` as a very rough proxy of CFR.
+What assumptions of CFR might be violated by defining CFR as `deaths/confirmed` from this data set? With acknowledgement of these severe limitations, we continue to use `deaths/confirmed` as a very rough proxy of CFR.
 
 ### Q2.3 
 
@@ -249,7 +249,7 @@ Apply analysis of deviance to (1) evaluate the goodness of fit of the model and 
 
 ### Q2.7
 
-Perform analysis of deviance to evaluate the significance of each predictor. Diplay the 10 most significant predictors.
+Perform analysis of deviance to evaluate the significance of each predictor. Display the 10 most significant predictors.
 
 ### Q2.8
 
