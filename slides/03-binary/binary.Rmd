@@ -408,7 +408,7 @@ against the $\chi^2$ distribution with $J-1$ degrees of freedom.
 # J
 nrow(wcgs_binned)
 # p-value
-pchisq(hlstat, nrow(wcgs_binned), lower.tail = FALSE)
+pchisq(hlstat, nrow(wcgs_binned) - 1, lower.tail = FALSE)
 ```
 We see a moderate p-value, which indicates no lack of fit.
 
