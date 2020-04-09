@@ -31,7 +31,7 @@ wcgs %>% head(10)
 We convert the dataframe into a tibble for compatibility with tidyverse.
 ```{r}
 wcgs <- wcgs %>% 
-  as_tibble(row_names = "id") %>%
+  as_tibble() %>%
   print(width = Inf)
 ```
 
@@ -215,9 +215,9 @@ $$
 $$
 where $\Omega$ is the full/saturated model (same number of parameters as observations) and $\omega$ is the smaller model. 
 
-- The usual goodness of fit test using $\chi_{n-q-1}^2$ asymptotic null distribution can **not** be applied here since we only have a single observation for each predictor pattern. This is different from the binomial model in next chapter. The Hosmer-Lemeshow test partitions the predicted probailities into $J$ bins and then carries out a Pearson $\chi^2$ type test to assess the goodness of fit (ELMR 2.6).
+- The usual goodness of fit test using $\chi_{n-q-1}^2$ asymptotic null distribution can **not** be applied here since we only have a single observation for each predictor pattern. This is different from the binomial model in next chapter. The Hosmer-Lemeshow test partitions the predicted probailities into $J$ bins and then carries out a Pearson $X^2$ type test to assess the goodness of fit (ELMR 2.6).
 
-- In the model output, the _residual deviance_, denoted $D_L$, is the devience of the current model and the _null deviance_, denoted $D_S$, is the deviance of the model with just an intercept term. Assuming the null model, the test statistic $D_S - D_L$ is asymptotically distributed $\chi_{\ell - s}^2$. In our case, the test statistic is
+- In the model output, the **residual deviance**, denoted $D_L$, is the devience of the current model and the _null deviance_, denoted $D_S$, is the deviance of the model with just an intercept term. Assuming the null model, the test statistic $D_S - D_L$ is asymptotically distributed $\chi_{\ell - s}^2$. In our case, the test statistic is
 ```{r}
 lmod$null.deviance - lmod$deviance
 ```
@@ -289,7 +289,7 @@ wcgs %>%
   mutate(rawres = rawres, linpred = linpred) %>%
   ggplot() +
   geom_point(mapping = aes(x = linpred, y = rawres)) +
-  labs(x = "linear predictor", y = "raw residuals")
+  labs(x = "Linear predictor", y = "Raw residuals")
 ```
 We do not expect the raw residuals to have equal variance because the binary variance is $p(1 - p)$.
 
@@ -317,7 +317,7 @@ wcgs %>%
   mutate(devres = devres, linpred = linpred) %>%
   ggplot() +
   geom_point(mapping = aes(x = linpred, y = devres)) +
-  labs(x = "linear predictor", y = "deviance residuals")
+  labs(x = "Linear predictor", y = "Deviance residuals")
 ```
 Again we see the residuals are clustered into two lines: the upper one corresponding to $y_i=1$ and the lower one to $y_i=0$. We can improve this plot by binning: divide the range of linear predictor into 100 bins of roughly equal points and plot average residual against average linear predictors per bin. 
 ```{r}
@@ -328,7 +328,7 @@ wcgs %>%
             linpred = mean(linpred)) %>%
   ggplot() +
   geom_point(mapping = aes(x = linpred, y = devres)) + 
-  labs(x = "linear predictor", y = "deviance residual")
+  labs(x = "Linear predictor", y = "Binned deviance residual")
 ```
 **Question**: is there a concern that the deviance residuals are not centered around 0? 
 
@@ -338,7 +338,8 @@ wcgs %>%
 ```{r}
 qqnorm(devres)
 ```
-Half-normal plot can help detect unusual cases in predictor space. For logistic regression, we use the generalized hat matrix
+
+- Half-normal plot (hat values against half-normal quantiles) can help detect unusual cases in predictor space (high leverage cases). For logistic regression, we use the generalized hat matrix
 $$
 \mathbf{H} = \widehat{\mathbf{W}}^{1/2} \mathbf{X}^T (\mathbf{X}^T \widehat{\mathbf{W}} \mathbf{X})^{-1} \mathbf{X} \widehat{\mathbf{W}}^{1/2},
 $$
@@ -353,10 +354,20 @@ $$
 ```{r}
 halfnorm(hatvalues(lmod))
 ```
-We see two outliers, who smoke an unusual number of cigarettes per day!
+We see two high leverage cases, who smoke an unusual number of cigarettes per day!
 ```{r}
 wcgs %>%
   slice(c(2527, 2695)) %>%
+  print(width = Inf)
+```
+
+- Plot of Cook distance against half-normal quantiles may reveal high influential points (high residual combined with high leverage) cases.
+```{r}
+halfnorm(cooks.distance(lmod))
+```
+```{r}
+wcgs %>%
+  slice(c(953, 2082)) %>%
   print(width = Inf)
 ```
 
@@ -364,14 +375,16 @@ wcgs %>%
 
 ### Hosmer-Lemeshow statistic
 
-- Intuitively if we divide observations into $J$ bins according to linear predictors $\eta$, then $y_j / n_j$ (observed proportion of ``successes") for $j$-th bin should be close to the average predicted probabilities in that bin.
+- Intuitively if we divide observations into $J$ bins according to linear predictors $\eta$, then $y_j / n_j$ (observed proportion of "successes") for $j$-th bin should be close to the average predicted probabilities in that bin.
 ```{r}
 wcgs_binned <- wcgs %>%
   mutate(predprob = predict(lmod, type = "response"), 
-         linpred = linpred,
-         bin = cut(linpred, breaks = unique(quantile(linpred, (1:100) / 101)))) %>%
+         linpred  = predict(lmod, type = "link"),
+         bin      = cut(linpred, breaks = unique(quantile(linpred, (1:100) / 101)))) %>%
   group_by(bin) %>%
-  summarize(y = sum(ifelse(chd == "yes", 1, 0)), avgpred = mean(predprob), count = n()) %>%
+  summarize(y       = sum(ifelse(chd == "yes", 1, 0)), 
+            avgpred = mean(predprob), 
+            count   = n()) %>%
   mutate(se_fit = sqrt(avgpred * (1 - avgpred) / count))
 ```
 ```{r}
@@ -401,34 +414,34 @@ We see a moderate p-value, which indicates no lack of fit.
 
 ### ROC curve
 
-- Logistic regression is often used as a tool for classification. 
+- Logistic regression is often used as a tool for **classification**. 
 
-- If we choose a threshold, say 0.25, then the predicted probabilities give a classification rule
+- If we choose a threshold, say 0.2, then the predicted probabilities give a classification rule
 $$
 \text{case $i$ is a} \begin{cases}
-\text{"success"} & \text{if } \widehat{p}_i \ge 0.25 \\
-\text{"failure"} & \text{if } \widehat{p}_i < 0.25
+\text{"success"} & \text{if } \widehat{p}_i \ge 0.2 \\
+\text{"failure"} & \text{if } \widehat{p}_i < 0.2
 \end{cases}.
 $$
 ```{r}
 wcgs %>% 
   mutate(predprob = predict(lmod, type = "response")) %>% 
-  mutate(predout = ifelse(predprob >= 0.25, "yes", "no")) %>%
+  mutate(predout = ifelse(predprob >= 0.2, "yes", "no")) %>%
   xtabs(~ chd + predout, data = .)
 ```
 
 - With this classification rule, we see the error rate is about
 ```{r}
-(3 + 257) / (2894 + 257 + 3)
+(11 + 254) / (2886 + 254 + 11 + 3)
 ```
 ![](https://upload.wikimedia.org/wikipedia/commons/e/e7/Sensitivity_and_specificity.svg)
 The **sensitivity** is
 $$
-\frac{\text{TP}}{\text{TP + FN}} = \frac{0}{257} = 0\%
+\frac{\text{TP}}{\text{TP + FN}} = \frac{3}{257} = 1.17\%
 $$
 and the **specificity** is
 $$
-\frac{\text{TN}}{\text{FP + TN}} = \frac{2894}{3 + 2894} = 99.9\%
+\frac{\text{TN}}{\text{FP + TN}} = \frac{2886}{11 + 2886} = 99.62\%
 $$
 
 - If we lower the threshold, then we increase the sensitivity but decrease the specificity. If we plot sensitivity against 1-specificity by varying the threshold, then we get the **receiver operating characteristic (ROC)** curve. 
@@ -456,13 +469,11 @@ wcgs <- wcgs %>%
 biglm <- glm(chd ~ age + height + weight + bmi + sdp + dbp + chol + dibep + cigs + arcus,
              family = binomial, data = wcgs)
 ```
-and then do sequential search using the `step` function
+and then do sequential backward search using the `step` function
 ```{r}
-smalllm <- step(biglm, trace = TRUE)
-smalllm %>%
+step(biglm, trace = TRUE, direction = "both") %>%
   tbl_regression() %>%
-  bold_labels() %>%
-  bold_p(t = 0.05)
+  bold_labels()
 ```
 
 ## Model selection by lasso
