@@ -262,7 +262,7 @@ or from profile-likelihood
 confint(lmod)
 ```
 
-## Diagnosis
+## Diagnostics
 
 - There are two kinds of fitted values (or predicted values). The first is on the scale of the linear predictor, $\eta$,
 ```{r}
