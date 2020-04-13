@@ -313,3 +313,38 @@ We drop the qudratic and cubic effects of `CnRray` and the insignificant predict
 clogit(disease ~ Fray + unclass(CnRay) + strata(ID), data = ramlxray) %>%
   tbl_regression(intercept = TRUE, exponentiate = TRUE)
 ```
+
+## Separation (ELMR 2.7)
+
+- Let's start with the famours Fisher Iris data. We restrict to species `setosa` and `versicolor` and classify them using predictors `Sepal.Width` and `Sepal.Length`. 
+```{r}
+irisr <- iris %>%
+  as_tibble() %>%
+  filter(Species == "setosa" | Species == "versicolor") %>%
+  dplyr::select(Sepal.Width, Sepal.Length, Species)
+```
+
+- We fit a logistic regression:
+```{r}
+lmod <- glm(Species ~ Sepal.Width + Sepal.Length, family = binomial, data = irisr)
+summary(lmod)
+```
+`glm` function is complaining there is some issue in algorithmic convergence. The residual deviance is essential 0, indicating a perfect fit, but none of the predictors are significant. 
+
+- Graphical summary of the data reveals that the two species `setosa` and `versicolor` are perfectly separable by a straight line $\eta = \beta_0 + x_{\text{Sepal.Width}} \beta_{\text{Sepal.Width}} + x_{\text{Sepal.Length}} \beta_{\text{Sepal.Length}} = 0$.
+```{r}
+irisr %>%
+  ggplot() + 
+  geom_point(mapping = aes(x = Sepal.Width, y = Sepal.Length, color = Species)) + 
+  geom_abline(intercept = - lmod$coef[1] / lmod$coef[3], 
+              slope     = - lmod$coef[2] / lmod$coef[3]) + 
+  labs(title = "Perfect separation in Iris data")
+```
+
+- For correct inference, we can use the bias reduction method implemented in `brglm` package. It gives finite estimates and correct inference on the coefficients.
+```{r}
+library(brglm)
+
+bmod <- brglm(Species ~ Sepal.Width + Sepal.Length, family = binomial, data = irisr)
+summary(bmod)
+```
