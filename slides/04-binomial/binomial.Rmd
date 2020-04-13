@@ -1,7 +1,7 @@
 ---
 title: "Binomial Response (ELMR Chapter 3)"
 author: "Dr. Hua Zhou @ UCLA"
-date: "Apr 9, 2020"
+date: "Apr 14, 2020"
 output:
   # ioslides_presentation: default
   html_document:
@@ -74,9 +74,10 @@ $$
 $$
 
 - The log-likelihood is
-$$
-\ell(\boldsymbol{\beta}) = \sum_{i=1}^n \left[ y_i \eta_i - m_i \log ( 1 + e^{\eta_i}) + \log \binom{m_i}{y_i} \right].
-$$
+\begin{eqnarray*}
+\ell(\boldsymbol{\beta}) &=& \sum_{i=1}^n \left[ y_i \eta_i - m_i \log ( 1 + e^{\eta_i}) + \log \binom{m_i}{y_i} \right] \\
+&=& \sum_{i=1}^n \left[ y_i \cdot \mathbf{x}_i^T \boldsymbol{\beta} - m_i \log ( 1 + e^{\mathbf{x}_i^T \boldsymbol{\beta}}) + \log \binom{m_i}{y_i} \right].
+\end{eqnarray*}
 
 - The Bernoulli model in Chapter 2 is a special case with all batch sizes $m_i = 1$. 
 
