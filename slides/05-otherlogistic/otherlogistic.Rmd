@@ -44,10 +44,10 @@ $$
 \frac{t-\mu}{\sigma} = \mathbf{x}^T \boldsymbol{\beta}.
 $$
 ```{r}
-tibble(t = seq(-6, 4, 0.1), pdf = dlogis(t, location = -1)) %>%
+tibble(t = seq(-6, 6, 0.1), pdf = dlogis(t, location = 0, scale = 1)) %>%
   ggplot() + 
   geom_line(mapping = aes(x = t, y = pdf)) + 
-  labs(x = "t", y = "density", title = "Logistic(-1, 1) distribution")
+  labs(x = "t", y = "density", title = "Logistic(0, 1) distribution")
 ```
 
 
@@ -85,8 +85,8 @@ bliss
 ```
 We fit `bliss` data using different link functions
 ```{r}
-mlogit  <- glm(cbind(dead, alive) ~ conc, family = binomial, data = bliss)
-mprobit <- glm(cbind(dead, alive) ~ conc, family = binomial(link = probit), data = bliss)
+mlogit   <- glm(cbind(dead, alive) ~ conc, family = binomial,                 data = bliss)
+mprobit  <- glm(cbind(dead, alive) ~ conc, family = binomial(link = probit),  data = bliss)
 mcloglog <- glm(cbind(dead, alive) ~ conc, family = binomial(link = cloglog), data = bliss)
 mcauchit <- glm(cbind(dead, alive) ~ conc, family = binomial(link = cauchit), data = bliss)
 ```
@@ -144,22 +144,28 @@ xtabs(disease / (disease + nondisease) ~ sex + food, babyfood)
 ```{r}
 library(gtsummary)
 
-glm(cbind(disease, nondisease) ~ sex + food, family = binomial, data = babyfood) %>%
+babyfood %>%
+  # change reference level to Breast and Girl
+  mutate(food = relevel(food, ref = "Breast"), sex = relevel(sex, ref = "Girl")) %>% 
+  glm(cbind(disease, nondisease) ~ sex + food, family = binomial, data = .) %>%
   tbl_regression(intercept = TRUE)
 ```
 
-The regression coefficient -0.67 for `Breast` respresents the increased risk of developing respiratory disease incurred by bottle feeding relative to breast feeding. Similarly the regression coefficient `-0.31` represents the increased risk of boys relative to girls. 
+The regression coefficient 0.67 for `Bottle` respresents the increased risk of developing respiratory disease incurred by bottle feeding relative to breast feeding. Similarly the regression coefficient `0.31` represents the increased risk of boys relative to girls. 
 
 - Assuming retrospective sampling, we can compute the log-odds of sex given the respiratory disease status.
 ```{r}
 babyfood %>%
-  pivot_longer(disease:nondisease, names_to = "resdis", values_to = "count") %>%
-  glm(sex ~ resdis + food, family = binomial, weights = count, data = .) %>%
+  # change reference level to Breast and Girl
+  mutate(food = relevel(food, ref = "Breast"), sex = relevel(sex, ref = "Girl")) %>%
+  pivot_longer(disease:nondisease, names_to = "dis", values_to = "count") %>%
+  mutate(dis = relevel(as.factor(dis), ref = "nondisease")) %>%
+  glm(sex ~ dis + food, family = binomial, weights = count, data = .) %>%
   tbl_regression(intercept = TRUE)
 ```
 We see the same regression coefficient `0.31`. 
 
-- We see that the retrospective design is as effective as a prospective design for estimating a relative risk. Retrospective design is more convenient because   
+- We see that using logistic regression for the retrospective design is as effective as a prospective design for estimating a relative risk. Retrospective design is more convenient because   
     1. it is easier to collect cases and controls (we don't need to wait for long time to even not able to collect any rare cases),   
     2. is is simpler to collect many predictors.  
 
@@ -191,9 +197,16 @@ $$
 $$
 with variance
 $$
-\mathbf{x}_0^T \left( \mathbf{X}^T \widehat{\mathbf{W}} \mathbf{X} \right)^{-1} \mathbf{x}_0.
+\operatorname{Var} \widehat{\eta} = \mathbf{x}_0^T \cdot \operatorname{Var} \widehat{\boldsymbol{\beta}} \cdot \mathbf{x}_0 = \mathbf{x}_0^T \left( \mathbf{X}^T \widehat{\mathbf{W}} \mathbf{X} \right)^{-1} \mathbf{x}_0.
 $$
 - For the insecticide data `bliss`, to predict the probability of killing an insect at dose 2.5:
+```{r}
+# prediction at linear predictor scale
+predict(mlogit, newdata = tibble(conc = 2.5), type = "link", se.fit = TRUE)
+# prediction at probability scale
+predict(mlogit, newdata = tibble(conc = 2.5), type = "response", se.fit = TRUE)
+```
+To manually check:
 ```{r}
 lmodsum <- summary(mlogit)
 x0 <- c(1, 2.5)
@@ -235,7 +248,7 @@ $$
 
 - To quantify the uncertainty in estimating ED50 or LD50, we can use the delta method
 $$
-\operatorname{var} g\left(\widehat{\boldsymbol{\theta}}\right) \approx \nabla g\left(\widehat{\boldsymbol{\theta}}\right)^T \cdot \operatorname{var} \widehat{\boldsymbol{\theta}} \cdot \nabla g\left(\widehat{\boldsymbol{\theta}}\right).
+\operatorname{var} g\left(\widehat{\boldsymbol{\theta}}\right) \approx \nabla g\left(\widehat{\boldsymbol{\theta}}\right)^T \cdot \operatorname{Var} \widehat{\boldsymbol{\theta}} \cdot \nabla g\left(\widehat{\boldsymbol{\theta}}\right).
 $$
 For ED50 or LD50
 $$
@@ -297,7 +310,9 @@ amlxray %>%
 ```
 So we exclude Donws syndrome cases and their matched subjects.
 ```{r}
-(downs_ids <- amlxray %>% filter(downs == "yes") %>% .$ID)
+(downs_ids <- amlxray %>% 
+   filter(downs == "yes") %>% 
+   .$ID)
 ramlxray <- amlxray %>%
   filter(!(ID %in% downs_ids))
 ```
