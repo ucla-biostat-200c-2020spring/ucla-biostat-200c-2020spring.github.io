@@ -377,7 +377,7 @@ summary {
 <li><a href="#prospective-and-retrospective-sampling">Prospective and retrospective sampling</a></li>
 <li><a href="#prediction">Prediction</a></li>
 <li><a href="#effective-doses-ed50-and-ld50">Effective doses, ED50 and LD50</a></li>
-<li><a href="#matched-case-control-studies">Matched case-control studies</a></li>
+<li><a href="#conditional-logistic-regression-for-matched-case-control-studies">Conditional logistic regression for matched case-control studies</a></li>
 <li><a href="#separation-elmr-2.7">Separation (ELMR 2.7)</a></li>
 </ul>
 </div>
@@ -404,12 +404,12 @@ summary {
 ##  [9] knitr_1.28      stringr_1.4.0   xfun_0.12       digest_0.6.25  
 ## [13] rlang_0.4.5     evaluate_0.14</code></pre>
 <pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## ── Attaching packages ────────────────────────────────────────────────────────────────────────────── tidyverse 1.3.0 ──</code></pre>
+<pre><code>## ── Attaching packages ────────────────────────────────────────────────────────────── tidyverse 1.3.0 ──</code></pre>
 <pre><code>## ✓ ggplot2 3.3.0     ✓ purrr   0.3.3
 ## ✓ tibble  3.0.0     ✓ dplyr   0.8.5
 ## ✓ tidyr   1.0.2     ✓ stringr 1.4.0
 ## ✓ readr   1.3.1     ✓ forcats 0.4.0</code></pre>
-<pre><code>## ── Conflicts ───────────────────────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
+<pre><code>## ── Conflicts ───────────────────────────────────────────────────────────────── tidyverse_conflicts() ──
 ## x dplyr::filter() masks stats::filter()
 ## x dplyr::lag()    masks stats::lag()</code></pre>
 <pre class="r"><code>library(faraway)</code></pre>
@@ -426,9 +426,9 @@ Y = \begin{cases}
 p = \mathbb{P}(Y = 1) = \mathbb{P}(T \le t).
 \]</span></li>
 <li>If <span class="math inline">\(T\)</span> follows the <strong>logistic distribution</strong> <span class="math display">\[
-\mathbb{P}(T \le t) = \frac{\exp(t - \mu) / \sigma}{1 + \exp(t-\mu)/\sigma},
+\mathbb{P}(T \le t) = \frac{e^{(t - \mu) / \sigma}}{1 + e^{(t-\mu)/\sigma}},
 \]</span> then we recover the logistic regression by setting <span class="math display">\[
-\frac{t-\mu}{\sigma} = \mathbf{x}^T \boldsymbol{\beta}.
+\frac{t-\mu}{\sigma} = \eta = \mathbf{x}^T \boldsymbol{\beta}.
 \]</span></li>
 </ul>
 <pre class="r"><code>tibble(t = seq(-6, 6, 0.1), pdf = dlogis(t, location = 0, scale = 1)) %&gt;%
@@ -483,18 +483,19 @@ mcauchit &lt;- glm(cbind(dead, alive) ~ conc, family = binomial(link = cauchit),
 <ul>
 <li>Copmaring fitted probabilities</li>
 </ul>
-<pre class="r"><code>tibble(logit   = predict(mlogit  , type = &quot;response&quot;),
+<pre class="r"><code>tibble(conc    = bliss$conc,
+       logit   = predict(mlogit  , type = &quot;response&quot;),
        probit  = predict(mprobit , type = &quot;response&quot;),
        cloglog = predict(mcloglog, type = &quot;response&quot;),
        cauchit = predict(mcauchit, type = &quot;response&quot;))</code></pre>
-<pre><code>## # A tibble: 5 x 4
-##    logit probit cloglog cauchit
-##    &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
-## 1 0.0892 0.0842   0.127   0.119
-## 2 0.238  0.245    0.250   0.213
-## 3 0.5    0.498    0.455   0.506
-## 4 0.762  0.752    0.722   0.791
-## 5 0.911  0.914    0.933   0.882</code></pre>
+<pre><code>## # A tibble: 5 x 5
+##    conc  logit probit cloglog cauchit
+##   &lt;int&gt;  &lt;dbl&gt;  &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
+## 1     0 0.0892 0.0842   0.127   0.119
+## 2     1 0.238  0.245    0.250   0.213
+## 3     2 0.5    0.498    0.455   0.506
+## 4     3 0.762  0.752    0.722   0.791
+## 5     4 0.911  0.914    0.933   0.882</code></pre>
 <p>we don’t see vast difference in the predictions from 4 link functions.</p>
 <ul>
 <li>Let’s compare the predictions at a wider range [-4, 8]. We observe wider differences at extreme values of linear predictors. Logit and probit are very close. Cauchit approaches 0 and 1 at slower rate, while cloglog at a faster rate.</li>
@@ -525,8 +526,8 @@ tibble(dose    = df$conc,
 <div id="prospective-and-retrospective-sampling" class="section level2">
 <h2>Prospective and retrospective sampling</h2>
 <ul>
-<li><p>In <strong>prospectively sampling</strong> or <strong>cohort study</strong>, the predictors are fixed and then the outcome is observed.</p></li>
-<li><p>In <strong>retrospectively sampling</strong> or <strong>case-control study</strong>, the outcome is fixed and then the predictors are observed. It is required that the probability of inclusion in the study is independent of the predictor values.</p></li>
+<li><p>In <strong>prospective sampling</strong> or <strong>cohort study</strong>, the predictors are fixed and then the outcome is observed.</p></li>
+<li><p>In <strong>retrospective sampling</strong> or <strong>case-control study</strong>, the outcome is fixed and then the predictors are observed. It is required that the probability of inclusion in the study is independent of the predictor values.</p></li>
 <li><p>Baby food example. We want to study the effect of sex and feeding method on whether a baby gets respiratory disease in the first year.</p></li>
 </ul>
 <pre class="r"><code>babyfood</code></pre>
@@ -543,7 +544,7 @@ tibble(dose    = df$conc,
 ##   Boy  0.16812227 0.09514170 0.12925170
 ##   Girl 0.12500000 0.06681034 0.12598425</code></pre>
 <ul>
-<li>Assuming prospective sampling, we fit a logistic regression</li>
+<li>Assuming prospective sampling (collect babies first then follow up whether they develop respiratory disease in the 1 year), we fit a logistic regression</li>
 </ul>
 <pre class="r"><code>library(gtsummary)
 
@@ -556,7 +557,7 @@ babyfood %&gt;%
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-#ywfpvwwnxk .gt_table {
+#nxegulsmwg .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -584,7 +585,7 @@ babyfood %&gt;%
   /* table.border.bottom.color */
 }
 
-#ywfpvwwnxk .gt_heading {
+#nxegulsmwg .gt_heading {
   background-color: #FFFFFF;
   /* heading.background.color */
   border-bottom-color: #FFFFFF;
@@ -603,7 +604,7 @@ babyfood %&gt;%
   /* heading.border.lr.color */
 }
 
-#ywfpvwwnxk .gt_title {
+#nxegulsmwg .gt_title {
   color: #333333;
   font-size: 125%;
   /* heading.title.font.size */
@@ -617,7 +618,7 @@ babyfood %&gt;%
   border-bottom-width: 0;
 }
 
-#ywfpvwwnxk .gt_subtitle {
+#nxegulsmwg .gt_subtitle {
   color: #333333;
   font-size: 85%;
   /* heading.subtitle.font.size */
@@ -631,7 +632,7 @@ babyfood %&gt;%
   border-top-width: 0;
 }
 
-#ywfpvwwnxk .gt_bottom_border {
+#nxegulsmwg .gt_bottom_border {
   border-bottom-style: solid;
   /* heading.border.bottom.style */
   border-bottom-width: 2px;
@@ -640,7 +641,7 @@ babyfood %&gt;%
   /* heading.border.bottom.color */
 }
 
-#ywfpvwwnxk .gt_column_spanner {
+#nxegulsmwg .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -648,7 +649,7 @@ babyfood %&gt;%
   padding-bottom: 4px;
 }
 
-#ywfpvwwnxk .gt_col_headings {
+#nxegulsmwg .gt_col_headings {
   border-top-style: solid;
   /* column_labels.border.top.style */
   border-top-width: 2px;
@@ -675,7 +676,7 @@ babyfood %&gt;%
   /* column_labels.border.lr.color */
 }
 
-#ywfpvwwnxk .gt_col_heading {
+#nxegulsmwg .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   /* column_labels.background.color */
@@ -691,11 +692,11 @@ babyfood %&gt;%
   overflow-x: hidden;
 }
 
-#ywfpvwwnxk .gt_sep_right {
+#nxegulsmwg .gt_sep_right {
   border-right: 5px solid #FFFFFF;
 }
 
-#ywfpvwwnxk .gt_group_heading {
+#nxegulsmwg .gt_group_heading {
   padding: 8px;
   /* row_group.padding */
   color: #333333;
@@ -734,7 +735,7 @@ babyfood %&gt;%
   vertical-align: middle;
 }
 
-#ywfpvwwnxk .gt_empty_group_heading {
+#nxegulsmwg .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -758,20 +759,20 @@ babyfood %&gt;%
   vertical-align: middle;
 }
 
-#ywfpvwwnxk .gt_striped {
+#nxegulsmwg .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
   /* row.striping.background_color */
 }
 
-#ywfpvwwnxk .gt_from_md > :first-child {
+#nxegulsmwg .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#ywfpvwwnxk .gt_from_md > :last-child {
+#nxegulsmwg .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#ywfpvwwnxk .gt_row {
+#nxegulsmwg .gt_row {
   padding-top: 8px;
   /* data_row.padding */
   padding-bottom: 8px;
@@ -801,7 +802,7 @@ babyfood %&gt;%
   overflow-x: hidden;
 }
 
-#ywfpvwwnxk .gt_stub {
+#nxegulsmwg .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   /* stub.background.color */
@@ -818,7 +819,7 @@ babyfood %&gt;%
   padding-left: 12px;
 }
 
-#ywfpvwwnxk .gt_summary_row {
+#nxegulsmwg .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   /* summary_row.background.color */
@@ -832,7 +833,7 @@ babyfood %&gt;%
   padding-right: 5px;
 }
 
-#ywfpvwwnxk .gt_first_summary_row {
+#nxegulsmwg .gt_first_summary_row {
   padding-top: 8px;
   /* summary_row.padding */
   padding-bottom: 8px;
@@ -847,7 +848,7 @@ babyfood %&gt;%
   /* summary_row.border.color */
 }
 
-#ywfpvwwnxk .gt_grand_summary_row {
+#nxegulsmwg .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   /* grand_summary_row.background.color */
@@ -861,7 +862,7 @@ babyfood %&gt;%
   padding-right: 5px;
 }
 
-#ywfpvwwnxk .gt_first_grand_summary_row {
+#nxegulsmwg .gt_first_grand_summary_row {
   padding-top: 8px;
   /* grand_summary_row.padding */
   padding-bottom: 8px;
@@ -876,7 +877,7 @@ babyfood %&gt;%
   /* grand_summary_row.border.color */
 }
 
-#ywfpvwwnxk .gt_table_body {
+#nxegulsmwg .gt_table_body {
   border-top-style: solid;
   /* table_body.border.top.style */
   border-top-width: 2px;
@@ -891,7 +892,7 @@ babyfood %&gt;%
   /* table_body.border.bottom.color */
 }
 
-#ywfpvwwnxk .gt_footnotes {
+#nxegulsmwg .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   /* footnotes.background.color */
@@ -915,7 +916,7 @@ babyfood %&gt;%
   /* footnotes.border.lr.color */
 }
 
-#ywfpvwwnxk .gt_footnote {
+#nxegulsmwg .gt_footnote {
   margin: 0px;
   font-size: 90%;
   /* footnotes.font.size */
@@ -923,7 +924,7 @@ babyfood %&gt;%
   /* footnotes.padding */
 }
 
-#ywfpvwwnxk .gt_sourcenotes {
+#nxegulsmwg .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   /* source_notes.background.color */
@@ -947,48 +948,48 @@ babyfood %&gt;%
   /* source_notes.border.lr.style */
 }
 
-#ywfpvwwnxk .gt_sourcenote {
+#nxegulsmwg .gt_sourcenote {
   font-size: 90%;
   /* source_notes.font.size */
   padding: 4px;
   /* source_notes.padding */
 }
 
-#ywfpvwwnxk .gt_left {
+#nxegulsmwg .gt_left {
   text-align: left;
 }
 
-#ywfpvwwnxk .gt_center {
+#nxegulsmwg .gt_center {
   text-align: center;
 }
 
-#ywfpvwwnxk .gt_right {
+#nxegulsmwg .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#ywfpvwwnxk .gt_font_normal {
+#nxegulsmwg .gt_font_normal {
   font-weight: normal;
 }
 
-#ywfpvwwnxk .gt_font_bold {
+#nxegulsmwg .gt_font_bold {
   font-weight: bold;
 }
 
-#ywfpvwwnxk .gt_font_italic {
+#nxegulsmwg .gt_font_italic {
   font-style: italic;
 }
 
-#ywfpvwwnxk .gt_super {
+#nxegulsmwg .gt_super {
   font-size: 65%;
 }
 
-#ywfpvwwnxk .gt_footnote_marks {
+#nxegulsmwg .gt_footnote_marks {
   font-style: italic;
   font-size: 65%;
 }
 </style>
-<div id="ywfpvwwnxk" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
+<div id="nxegulsmwg" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
   
   <thead class="gt_col_headings">
     <tr>
@@ -1066,7 +1067,7 @@ babyfood %&gt;%
 </table></div>
 <p>The regression coefficient 0.67 for <code>Bottle</code> respresents the increased risk of developing respiratory disease incurred by bottle feeding relative to breast feeding. Similarly the regression coefficient <code>0.31</code> represents the increased risk of boys relative to girls.</p>
 <ul>
-<li>Assuming retrospective sampling, we can compute the log-odds of sex given the respiratory disease status.</li>
+<li>Assuming retrospective sampling (inspect the medical history of many babies at 1 year old), it seems more sensible compute the log-odds of sex given the respiratory disease status. We actually observe the same regression coefficient <code>0.31</code> for <code>dis</code>!</li>
 </ul>
 <pre class="r"><code>babyfood %&gt;%
   # change reference level to Breast and Girl
@@ -1075,11 +1076,11 @@ babyfood %&gt;%
   mutate(dis = relevel(as.factor(dis), ref = &quot;nondisease&quot;)) %&gt;%
   glm(sex ~ dis + food, family = binomial, weights = count, data = .) %&gt;%
   tbl_regression(intercept = TRUE)</code></pre>
-<p><style>html {
+<style>html {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-#gtbdjvtkem .gt_table {
+#fwywkichou .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -1107,7 +1108,7 @@ babyfood %&gt;%
   /* table.border.bottom.color */
 }
 
-#gtbdjvtkem .gt_heading {
+#fwywkichou .gt_heading {
   background-color: #FFFFFF;
   /* heading.background.color */
   border-bottom-color: #FFFFFF;
@@ -1126,7 +1127,7 @@ babyfood %&gt;%
   /* heading.border.lr.color */
 }
 
-#gtbdjvtkem .gt_title {
+#fwywkichou .gt_title {
   color: #333333;
   font-size: 125%;
   /* heading.title.font.size */
@@ -1140,7 +1141,7 @@ babyfood %&gt;%
   border-bottom-width: 0;
 }
 
-#gtbdjvtkem .gt_subtitle {
+#fwywkichou .gt_subtitle {
   color: #333333;
   font-size: 85%;
   /* heading.subtitle.font.size */
@@ -1154,7 +1155,7 @@ babyfood %&gt;%
   border-top-width: 0;
 }
 
-#gtbdjvtkem .gt_bottom_border {
+#fwywkichou .gt_bottom_border {
   border-bottom-style: solid;
   /* heading.border.bottom.style */
   border-bottom-width: 2px;
@@ -1163,7 +1164,7 @@ babyfood %&gt;%
   /* heading.border.bottom.color */
 }
 
-#gtbdjvtkem .gt_column_spanner {
+#fwywkichou .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -1171,7 +1172,7 @@ babyfood %&gt;%
   padding-bottom: 4px;
 }
 
-#gtbdjvtkem .gt_col_headings {
+#fwywkichou .gt_col_headings {
   border-top-style: solid;
   /* column_labels.border.top.style */
   border-top-width: 2px;
@@ -1198,7 +1199,7 @@ babyfood %&gt;%
   /* column_labels.border.lr.color */
 }
 
-#gtbdjvtkem .gt_col_heading {
+#fwywkichou .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   /* column_labels.background.color */
@@ -1214,11 +1215,11 @@ babyfood %&gt;%
   overflow-x: hidden;
 }
 
-#gtbdjvtkem .gt_sep_right {
+#fwywkichou .gt_sep_right {
   border-right: 5px solid #FFFFFF;
 }
 
-#gtbdjvtkem .gt_group_heading {
+#fwywkichou .gt_group_heading {
   padding: 8px;
   /* row_group.padding */
   color: #333333;
@@ -1257,7 +1258,7 @@ babyfood %&gt;%
   vertical-align: middle;
 }
 
-#gtbdjvtkem .gt_empty_group_heading {
+#fwywkichou .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -1281,20 +1282,20 @@ babyfood %&gt;%
   vertical-align: middle;
 }
 
-#gtbdjvtkem .gt_striped {
+#fwywkichou .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
   /* row.striping.background_color */
 }
 
-#gtbdjvtkem .gt_from_md > :first-child {
+#fwywkichou .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#gtbdjvtkem .gt_from_md > :last-child {
+#fwywkichou .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#gtbdjvtkem .gt_row {
+#fwywkichou .gt_row {
   padding-top: 8px;
   /* data_row.padding */
   padding-bottom: 8px;
@@ -1324,7 +1325,7 @@ babyfood %&gt;%
   overflow-x: hidden;
 }
 
-#gtbdjvtkem .gt_stub {
+#fwywkichou .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   /* stub.background.color */
@@ -1341,7 +1342,7 @@ babyfood %&gt;%
   padding-left: 12px;
 }
 
-#gtbdjvtkem .gt_summary_row {
+#fwywkichou .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   /* summary_row.background.color */
@@ -1355,7 +1356,7 @@ babyfood %&gt;%
   padding-right: 5px;
 }
 
-#gtbdjvtkem .gt_first_summary_row {
+#fwywkichou .gt_first_summary_row {
   padding-top: 8px;
   /* summary_row.padding */
   padding-bottom: 8px;
@@ -1370,7 +1371,7 @@ babyfood %&gt;%
   /* summary_row.border.color */
 }
 
-#gtbdjvtkem .gt_grand_summary_row {
+#fwywkichou .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   /* grand_summary_row.background.color */
@@ -1384,7 +1385,7 @@ babyfood %&gt;%
   padding-right: 5px;
 }
 
-#gtbdjvtkem .gt_first_grand_summary_row {
+#fwywkichou .gt_first_grand_summary_row {
   padding-top: 8px;
   /* grand_summary_row.padding */
   padding-bottom: 8px;
@@ -1399,7 +1400,7 @@ babyfood %&gt;%
   /* grand_summary_row.border.color */
 }
 
-#gtbdjvtkem .gt_table_body {
+#fwywkichou .gt_table_body {
   border-top-style: solid;
   /* table_body.border.top.style */
   border-top-width: 2px;
@@ -1414,7 +1415,7 @@ babyfood %&gt;%
   /* table_body.border.bottom.color */
 }
 
-#gtbdjvtkem .gt_footnotes {
+#fwywkichou .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   /* footnotes.background.color */
@@ -1438,7 +1439,7 @@ babyfood %&gt;%
   /* footnotes.border.lr.color */
 }
 
-#gtbdjvtkem .gt_footnote {
+#fwywkichou .gt_footnote {
   margin: 0px;
   font-size: 90%;
   /* footnotes.font.size */
@@ -1446,7 +1447,7 @@ babyfood %&gt;%
   /* footnotes.padding */
 }
 
-#gtbdjvtkem .gt_sourcenotes {
+#fwywkichou .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   /* source_notes.background.color */
@@ -1470,48 +1471,48 @@ babyfood %&gt;%
   /* source_notes.border.lr.style */
 }
 
-#gtbdjvtkem .gt_sourcenote {
+#fwywkichou .gt_sourcenote {
   font-size: 90%;
   /* source_notes.font.size */
   padding: 4px;
   /* source_notes.padding */
 }
 
-#gtbdjvtkem .gt_left {
+#fwywkichou .gt_left {
   text-align: left;
 }
 
-#gtbdjvtkem .gt_center {
+#fwywkichou .gt_center {
   text-align: center;
 }
 
-#gtbdjvtkem .gt_right {
+#fwywkichou .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#gtbdjvtkem .gt_font_normal {
+#fwywkichou .gt_font_normal {
   font-weight: normal;
 }
 
-#gtbdjvtkem .gt_font_bold {
+#fwywkichou .gt_font_bold {
   font-weight: bold;
 }
 
-#gtbdjvtkem .gt_font_italic {
+#fwywkichou .gt_font_italic {
   font-style: italic;
 }
 
-#gtbdjvtkem .gt_super {
+#fwywkichou .gt_super {
   font-size: 65%;
 }
 
-#gtbdjvtkem .gt_footnote_marks {
+#fwywkichou .gt_footnote_marks {
   font-style: italic;
   font-size: 65%;
 }
 </style>
-<div id="gtbdjvtkem" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
+<div id="fwywkichou" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
   
   <thead class="gt_col_headings">
     <tr>
@@ -1586,7 +1587,7 @@ babyfood %&gt;%
       </td>
     </tr>
   </tfoot>
-</table></div> We see the same regression coefficient <code>0.31</code>.</p>
+</table></div>
 <ul>
 <li>We see that using logistic regression for the retrospective design is as effective as a prospective design for estimating a relative risk. Retrospective design is more convenient because
 <ol style="list-style-type: decimal">
@@ -1704,8 +1705,8 @@ p = \frac{e^{\beta_0 + x \beta_1}}{1 + e^{\beta_0 + x \beta_1}} = 0.5
 ## p = 0.50: 2.000000 0.1784367
 ## p = 0.75: 2.945535 0.2315932</code></pre>
 </div>
-<div id="matched-case-control-studies" class="section level2">
-<h2>Matched case-control studies</h2>
+<div id="conditional-logistic-regression-for-matched-case-control-studies" class="section level2">
+<h2>Conditional logistic regression for matched case-control studies</h2>
 <ul>
 <li><p>In case-control studies, we try to determine the effect of certain risk factors on the outcome. Ideally we hope to collect all confouding variables and model them in the correct way in the logistic regression. In reality, it can be difficult.</p></li>
 <li><p>In a <strong>matched case-control study</strong>, we match each case with one or more controls that have the same or similar values of some set of potential confouding variables. For example, if we have a 56-year-old, Hispanic male case, we try to match him with a few controls who are also 56-year-old Hispanic males. Matching also gvies us the possibility of adjusting for confounders that are difficult to measure, e.g., diet, environmental exposure, etc.</p></li>
@@ -1764,7 +1765,7 @@ L(\boldsymbol{\beta}) = \prod_{j=1}^n \frac{1}{1 + \sum_{i=0}^M \exp (\mathbf{x}
 ## 112 Levels: 7004 7006 7009 7010 7013 7014 7015 7017 7018 7019 7021 7023 ... 7211</code></pre>
 <pre class="r"><code>ramlxray &lt;- amlxray %&gt;%
   filter(!(ID %in% downs_ids))</code></pre>
-<p>Now we can fit a conditional logit model using predictors <code>Sex</code>, <code>Mray</code> (mother exposure to x-ray), <code>Fray</code> (father exposure to x-ray), and <code>CnRay</code> (child exposure to x-ray). Since <code>CnRray</code> is an ordered factor, linear, quadratic, and cubic contrasts are estimated. Only the linear effect is significant.</p>
+<p>Now we can fit a conditional logit model using predictors <code>Sex</code>, <code>Mray</code> (mother exposure to x-ray), <code>Fray</code> (father exposure to x-ray), and <code>CnRay</code> (child exposure to x-ray). Since <code>CnRray</code> is an ordered factor, linear, quadratic, and cubic contrasts (from orthogonal polynomial coding) are estimated. Only the linear effect is significant.</p>
 <pre class="r"><code>library(survival)</code></pre>
 <pre><code>## 
 ## Attaching package: 'survival'</code></pre>
@@ -1808,7 +1809,7 @@ summary(cmod)</code></pre>
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', 'Fira Sans', 'Droid Sans', Arial, sans-serif;
 }
 
-#zwfycrotvq .gt_table {
+#ehuhhyooqb .gt_table {
   display: table;
   border-collapse: collapse;
   margin-left: auto;
@@ -1836,7 +1837,7 @@ summary(cmod)</code></pre>
   /* table.border.bottom.color */
 }
 
-#zwfycrotvq .gt_heading {
+#ehuhhyooqb .gt_heading {
   background-color: #FFFFFF;
   /* heading.background.color */
   border-bottom-color: #FFFFFF;
@@ -1855,7 +1856,7 @@ summary(cmod)</code></pre>
   /* heading.border.lr.color */
 }
 
-#zwfycrotvq .gt_title {
+#ehuhhyooqb .gt_title {
   color: #333333;
   font-size: 125%;
   /* heading.title.font.size */
@@ -1869,7 +1870,7 @@ summary(cmod)</code></pre>
   border-bottom-width: 0;
 }
 
-#zwfycrotvq .gt_subtitle {
+#ehuhhyooqb .gt_subtitle {
   color: #333333;
   font-size: 85%;
   /* heading.subtitle.font.size */
@@ -1883,7 +1884,7 @@ summary(cmod)</code></pre>
   border-top-width: 0;
 }
 
-#zwfycrotvq .gt_bottom_border {
+#ehuhhyooqb .gt_bottom_border {
   border-bottom-style: solid;
   /* heading.border.bottom.style */
   border-bottom-width: 2px;
@@ -1892,7 +1893,7 @@ summary(cmod)</code></pre>
   /* heading.border.bottom.color */
 }
 
-#zwfycrotvq .gt_column_spanner {
+#ehuhhyooqb .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -1900,7 +1901,7 @@ summary(cmod)</code></pre>
   padding-bottom: 4px;
 }
 
-#zwfycrotvq .gt_col_headings {
+#ehuhhyooqb .gt_col_headings {
   border-top-style: solid;
   /* column_labels.border.top.style */
   border-top-width: 2px;
@@ -1927,7 +1928,7 @@ summary(cmod)</code></pre>
   /* column_labels.border.lr.color */
 }
 
-#zwfycrotvq .gt_col_heading {
+#ehuhhyooqb .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   /* column_labels.background.color */
@@ -1943,11 +1944,11 @@ summary(cmod)</code></pre>
   overflow-x: hidden;
 }
 
-#zwfycrotvq .gt_sep_right {
+#ehuhhyooqb .gt_sep_right {
   border-right: 5px solid #FFFFFF;
 }
 
-#zwfycrotvq .gt_group_heading {
+#ehuhhyooqb .gt_group_heading {
   padding: 8px;
   /* row_group.padding */
   color: #333333;
@@ -1986,7 +1987,7 @@ summary(cmod)</code></pre>
   vertical-align: middle;
 }
 
-#zwfycrotvq .gt_empty_group_heading {
+#ehuhhyooqb .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -2010,20 +2011,20 @@ summary(cmod)</code></pre>
   vertical-align: middle;
 }
 
-#zwfycrotvq .gt_striped {
+#ehuhhyooqb .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
   /* row.striping.background_color */
 }
 
-#zwfycrotvq .gt_from_md > :first-child {
+#ehuhhyooqb .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#zwfycrotvq .gt_from_md > :last-child {
+#ehuhhyooqb .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#zwfycrotvq .gt_row {
+#ehuhhyooqb .gt_row {
   padding-top: 8px;
   /* data_row.padding */
   padding-bottom: 8px;
@@ -2053,7 +2054,7 @@ summary(cmod)</code></pre>
   overflow-x: hidden;
 }
 
-#zwfycrotvq .gt_stub {
+#ehuhhyooqb .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   /* stub.background.color */
@@ -2070,7 +2071,7 @@ summary(cmod)</code></pre>
   padding-left: 12px;
 }
 
-#zwfycrotvq .gt_summary_row {
+#ehuhhyooqb .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   /* summary_row.background.color */
@@ -2084,7 +2085,7 @@ summary(cmod)</code></pre>
   padding-right: 5px;
 }
 
-#zwfycrotvq .gt_first_summary_row {
+#ehuhhyooqb .gt_first_summary_row {
   padding-top: 8px;
   /* summary_row.padding */
   padding-bottom: 8px;
@@ -2099,7 +2100,7 @@ summary(cmod)</code></pre>
   /* summary_row.border.color */
 }
 
-#zwfycrotvq .gt_grand_summary_row {
+#ehuhhyooqb .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   /* grand_summary_row.background.color */
@@ -2113,7 +2114,7 @@ summary(cmod)</code></pre>
   padding-right: 5px;
 }
 
-#zwfycrotvq .gt_first_grand_summary_row {
+#ehuhhyooqb .gt_first_grand_summary_row {
   padding-top: 8px;
   /* grand_summary_row.padding */
   padding-bottom: 8px;
@@ -2128,7 +2129,7 @@ summary(cmod)</code></pre>
   /* grand_summary_row.border.color */
 }
 
-#zwfycrotvq .gt_table_body {
+#ehuhhyooqb .gt_table_body {
   border-top-style: solid;
   /* table_body.border.top.style */
   border-top-width: 2px;
@@ -2143,7 +2144,7 @@ summary(cmod)</code></pre>
   /* table_body.border.bottom.color */
 }
 
-#zwfycrotvq .gt_footnotes {
+#ehuhhyooqb .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   /* footnotes.background.color */
@@ -2167,7 +2168,7 @@ summary(cmod)</code></pre>
   /* footnotes.border.lr.color */
 }
 
-#zwfycrotvq .gt_footnote {
+#ehuhhyooqb .gt_footnote {
   margin: 0px;
   font-size: 90%;
   /* footnotes.font.size */
@@ -2175,7 +2176,7 @@ summary(cmod)</code></pre>
   /* footnotes.padding */
 }
 
-#zwfycrotvq .gt_sourcenotes {
+#ehuhhyooqb .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   /* source_notes.background.color */
@@ -2199,48 +2200,48 @@ summary(cmod)</code></pre>
   /* source_notes.border.lr.style */
 }
 
-#zwfycrotvq .gt_sourcenote {
+#ehuhhyooqb .gt_sourcenote {
   font-size: 90%;
   /* source_notes.font.size */
   padding: 4px;
   /* source_notes.padding */
 }
 
-#zwfycrotvq .gt_left {
+#ehuhhyooqb .gt_left {
   text-align: left;
 }
 
-#zwfycrotvq .gt_center {
+#ehuhhyooqb .gt_center {
   text-align: center;
 }
 
-#zwfycrotvq .gt_right {
+#ehuhhyooqb .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#zwfycrotvq .gt_font_normal {
+#ehuhhyooqb .gt_font_normal {
   font-weight: normal;
 }
 
-#zwfycrotvq .gt_font_bold {
+#ehuhhyooqb .gt_font_bold {
   font-weight: bold;
 }
 
-#zwfycrotvq .gt_font_italic {
+#ehuhhyooqb .gt_font_italic {
   font-style: italic;
 }
 
-#zwfycrotvq .gt_super {
+#ehuhhyooqb .gt_super {
   font-size: 65%;
 }
 
-#zwfycrotvq .gt_footnote_marks {
+#ehuhhyooqb .gt_footnote_marks {
   font-style: italic;
   font-size: 65%;
 }
 </style>
-<div id="zwfycrotvq" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
+<div id="ehuhhyooqb" style="overflow-x:auto;overflow-y:auto;width:auto;height:auto;"><table class="gt_table">
   
   <thead class="gt_col_headings">
     <tr>

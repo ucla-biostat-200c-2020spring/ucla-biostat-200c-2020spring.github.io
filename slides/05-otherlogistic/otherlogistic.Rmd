@@ -37,11 +37,11 @@ p = \mathbb{P}(Y = 1) = \mathbb{P}(T \le t).
 $$
 - If $T$ follows the **logistic distribution**
 $$
-\mathbb{P}(T \le t) = \frac{\exp(t - \mu) / \sigma}{1 + \exp(t-\mu)/\sigma},
+\mathbb{P}(T \le t) = \frac{e^{(t - \mu) / \sigma}}{1 + e^{(t-\mu)/\sigma}},
 $$
 then we recover the logistic regression by setting
 $$
-\frac{t-\mu}{\sigma} = \mathbf{x}^T \boldsymbol{\beta}.
+\frac{t-\mu}{\sigma} = \eta = \mathbf{x}^T \boldsymbol{\beta}.
 $$
 ```{r}
 tibble(t = seq(-6, 6, 0.1), pdf = dlogis(t, location = 0, scale = 1)) %>%
@@ -101,7 +101,8 @@ Probit seems to give a better fit.
 
 - Copmaring fitted probabilities
 ```{r}
-tibble(logit   = predict(mlogit  , type = "response"),
+tibble(conc    = bliss$conc,
+       logit   = predict(mlogit  , type = "response"),
        probit  = predict(mprobit , type = "response"),
        cloglog = predict(mcloglog, type = "response"),
        cauchit = predict(mcauchit, type = "response"))
@@ -130,9 +131,9 @@ tibble(dose    = df$conc,
     
 ## Prospective and retrospective sampling
 
-- In **prospectively sampling** or **cohort study**, the predictors are fixed and then the outcome is observed. 
+- In **prospective sampling** or **cohort study**, the predictors are fixed and then the outcome is observed. 
 
-- In **retrospectively sampling** or **case-control study**, the outcome is fixed and then the predictors are observed. It is required that the probability of inclusion in the study is independent of the predictor values. 
+- In **retrospective sampling** or **case-control study**, the outcome is fixed and then the predictors are observed. It is required that the probability of inclusion in the study is independent of the predictor values. 
 
 - Baby food example. We want to study the effect of sex and feeding method on whether a baby gets respiratory disease in the first year.
 ```{r}
@@ -140,7 +141,7 @@ babyfood
 xtabs(disease / (disease + nondisease) ~ sex + food, babyfood)
 ```
  
-- Assuming prospective sampling, we fit a logistic regression
+- Assuming prospective sampling (collect babies first then follow up whether they develop respiratory disease in the 1 year), we fit a logistic regression
 ```{r}
 library(gtsummary)
 
@@ -153,7 +154,7 @@ babyfood %>%
 
 The regression coefficient 0.67 for `Bottle` respresents the increased risk of developing respiratory disease incurred by bottle feeding relative to breast feeding. Similarly the regression coefficient `0.31` represents the increased risk of boys relative to girls. 
 
-- Assuming retrospective sampling, we can compute the log-odds of sex given the respiratory disease status.
+- Assuming retrospective sampling (inspect the medical history of many babies at 1 year old), it seems more sensible compute the log-odds of sex given the respiratory disease status. We actually observe the same regression coefficient `0.31` for `dis`! 
 ```{r}
 babyfood %>%
   # change reference level to Breast and Girl
@@ -163,7 +164,6 @@ babyfood %>%
   glm(sex ~ dis + food, family = binomial, weights = count, data = .) %>%
   tbl_regression(intercept = TRUE)
 ```
-We see the same regression coefficient `0.31`. 
 
 - We see that using logistic regression for the retrospective design is as effective as a prospective design for estimating a relative risk. Retrospective design is more convenient because   
     1. it is easier to collect cases and controls (we don't need to wait for long time to even not able to collect any rare cases),   
@@ -271,7 +271,7 @@ library(MASS)
 dose.p(mlogit, p = c(0.25, 0.5, 0.75))
 ```
 
-## Matched case-control studies
+## Conditional logistic regression for matched case-control studies
 
 - In case-control studies, we try to determine the effect of certain risk factors on the outcome. Ideally we hope to collect all confouding variables and model them in the correct way in the logistic regression. In reality, it can be difficult. 
 
@@ -316,7 +316,7 @@ So we exclude Donws syndrome cases and their matched subjects.
 ramlxray <- amlxray %>%
   filter(!(ID %in% downs_ids))
 ```
-Now we can fit a conditional logit model using predictors `Sex`, `Mray` (mother exposure to x-ray), `Fray` (father exposure to x-ray), and `CnRay` (child exposure to x-ray). Since `CnRray` is an ordered factor, linear, quadratic, and cubic contrasts are estimated. Only the linear effect is significant.
+Now we can fit a conditional logit model using predictors `Sex`, `Mray` (mother exposure to x-ray), `Fray` (father exposure to x-ray), and `CnRay` (child exposure to x-ray). Since `CnRray` is an ordered factor, linear, quadratic, and cubic contrasts (from orthogonal polynomial coding) are estimated. Only the linear effect is significant.
 ```{r}
 library(survival)
 
