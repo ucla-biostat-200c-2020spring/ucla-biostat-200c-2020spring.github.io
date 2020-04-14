@@ -48,13 +48,14 @@ orings <- orings %>%
 
 ## Descriptive statistics
 
-There seems a pattern: lower temperature, more damages.
+There seems a pattern: lower temperature, more damages. 
 ```{r}
-orings %>%
+oring_plot <- orings %>%
   mutate(failrate = damage / 6) %>%
   ggplot(mapping = aes(x = temp, y = failrate)) + 
   geom_point() + 
-  labs(x = "Temperature (F)", y = "Proportion of damages")
+  labs(x = "Temperature (F)", y = "Proportion of damages", title = "O-ring damage data")
+plot(oring_plot)
 ```
 
 ## Binomial model
@@ -103,6 +104,18 @@ orings %>%
   mutate(obs_wt = obs_wt) %>%
   glm(damage ~ temp, weights = obs_wt, family = binomial, data = .) %>%
   tbl_regression(intercept = TRUE)
+```
+
+## Prediction
+
+Now we can predict the failure probability. The failure probability at 31F is nearly 1.
+```{r}
+tibble(temp     = seq(25, 85, 0.1), 
+       predprob = predict(lmod, newdata = tibble(temp = temp), type = "response")) %>%
+  ggplot() + 
+  geom_line(mapping = aes(x = temp, y = predprob)) + 
+  geom_vline(xintercept = 31) +
+  labs(x = "Temperature (F)", y = "Predicted failure probability")
 ```
 
 ## Goodness of fit
