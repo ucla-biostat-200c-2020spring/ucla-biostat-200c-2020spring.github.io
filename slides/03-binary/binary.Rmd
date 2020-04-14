@@ -508,8 +508,10 @@ set.seed(200)
 # list = FALSE, request result to be in a matrix (of row position) not a list
 training_samples <- wcgs$chd %>%
   createDataPartition(p = 0.8, list = FALSE)
-(train_data <- wcgs[training_samples, ])
-(val_data <- wcgs[-training_samples, ])
+(train_data <- wcgs %>%
+  slice(training_samples[, 1]))
+(val_data   <- wcgs %>%
+  slice(-training_samples[, 1]))
 ```
 The `glmnet` package takes a matrix (of predictors) and a vector (of responses) as input. We use `model.matrix` function to create them. `glmnet` will add intercept by default, so we drop intercept term when forming `x` matrix.
 ```{r}
@@ -527,14 +529,14 @@ summary(lasso_fit)
 plot(lasso_fit, xvar = "lambda", label = TRUE)
 ```
 
-Here   
+- Here   
     - $\alpha = 1$ corresponds to the lasso regression, in the family of **elastic net penalties**
 $$
 (1 - \alpha) \|\boldsymbol{\beta}\|_2^2 / 2 + \alpha \|\boldsymbol{\beta}\|_1.
-$$  
+$$   
     - Other choises for `xvar` are `"lambda"` for log lambda value, `"norm"` for the $\ell_1$-norm of the coefficients (default), and `"dev"` for the percentage of deviance explained.  
 
-- Now we can evaluate performance of the models (corresponding to different $\lambda$ values) on the validation set.
+- Now we can evaluate the performance of the models (corresponding to different $\lambda$ values) on the validation set.
 ```{r}
 # form y and x from validation data
 x_val <- model.matrix(
@@ -550,7 +552,7 @@ tibble(lambda = lasso_fit$lambda, dev_val = dev_val) %>%
   scale_x_log10() +
   labs(y = "Binomial deviance on validation set", x = "Lambda")
 ```
-From the graph, it seems that $\lambda = 0.05$ yields a model that performs best on the validation set.  
+From the graph, it seems that $\lambda = 0.005$ yields a model that performs best on the validation set.  
 
 - Now the question is whether we should make decision on this single training-validation split? A common strategy is to use **cross validation**. 
 ```{r}
@@ -565,7 +567,7 @@ cv_lasso <- cv.glmnet(x_all, y_all, alpha = 1, family = "binomial",
                       type.measure = "auc")
 plot(cv_lasso)
 ```
-The plot displays the cross-validation error (devience by default) according to the log of lambda. The left dashed vertical line indicates that the log of the optimal value of lambda is approximately -6.4, which is the one that minimizes the prediction error. This lambda value will give the most accurate model. The exact value of lambda and corresponding model can be viewed as follow:
+The plot displays the cross-validation error (devience by default, we chose AUC here) according to the log of lambda. The left dashed vertical line indicates that the log of the optimal value of log lambda is approximately -5.2, which is the one that minimizes the average AUC. This lambda value will give the most accurate model. The exact value of lambda and corresponding model can be viewed as follow:
 ```{r}
 cv_lasso$lambda.min
 coef(cv_lasso, cv_lasso$lambda.min)

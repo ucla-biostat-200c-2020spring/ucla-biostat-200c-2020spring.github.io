@@ -43,7 +43,7 @@ library(faraway)
 ```{r}
 orings <- orings %>%
   as_tibble(rownames = "mission") %>%
-  print(width = Inf, n = Inf)
+  print(n = Inf)
 ```
 
 ## Descriptive statistics
@@ -54,7 +54,7 @@ orings %>%
   mutate(failrate = damage / 6) %>%
   ggplot(mapping = aes(x = temp, y = failrate)) + 
   geom_point() + 
-  labs(x = "Temperature (F)", y = "Prop. of damage")
+  labs(x = "Temperature (F)", y = "Proportion of damages")
 ```
 
 ## Binomial model
@@ -64,7 +64,7 @@ $$
 \mathbb{P}(Y_i = y_i) = \binom{m_i}{y_i} p_i^{y_i} (1 - p_i)^{m_i - y_i}.
 $$
 
-- The parameter $p_i$ is related to the predictors $X_1, \ldots, X_{q}$ via an **inverse link function**
+- The parameter $p_i$ is linked to the predictors $X_1, \ldots, X_{q}$ via an **inverse link function**
 $$
 p_i = \frac{e^{\eta_i}}{1 + e^{\eta_i}},
 $$
@@ -75,11 +75,12 @@ $$
 
 - The log-likelihood is
 \begin{eqnarray*}
-\ell(\boldsymbol{\beta}) &=& \sum_{i=1}^n \left[ y_i \eta_i - m_i \log ( 1 + e^{\eta_i}) + \log \binom{m_i}{y_i} \right] \\
+\ell(\boldsymbol{\beta}) &=& \sum_{i=1}^n \left[ y_i \log p_i + (m_i - y_i) \log (1 - p_i) + \log \binom{m_i}{y_i} \right] \\
+&=& \sum_{i=1}^n \left[ y_i \eta_i - m_i \log ( 1 + e^{\eta_i}) + \log \binom{m_i}{y_i} \right] \\
 &=& \sum_{i=1}^n \left[ y_i \cdot \mathbf{x}_i^T \boldsymbol{\beta} - m_i \log ( 1 + e^{\mathbf{x}_i^T \boldsymbol{\beta}}) + \log \binom{m_i}{y_i} \right].
 \end{eqnarray*}
 
-- The Bernoulli model in Chapter 2 is a special case with all batch sizes $m_i = 1$. 
+- The Bernoulli model in ELMR 2 is a special case with all batch sizes $m_i = 1$. 
 
 - Conversely, the Binomial model is equivalent to a Bernoulli model with $\sum_i m_i$ observations, or a Bernoulli model with observation weights $(y_i, m_i - y_i)$. 
 
@@ -114,11 +115,10 @@ orings %>%
 \end{eqnarray*}
 where $\widehat{y}_i$ are the fitted values from the model. 
 
-- When $Y$ is truely binomial and $m_i$ are relatively large, the deviance $D$ is approximately $\chi^2$ distributed with $n - q - 1$ degrees of freedom if the model is correct. The large p-value indicates that the model has an adequate fit.
+- When $Y$ is truely binomial and $m_i$ are relatively large, the deviance $D$ is approximately $\chi_{n-q-1}^2$ if the model is correct. A rule of thumb to use this asymptotic approximation is $m_i \ge 5$. The large p-value indicates that the model has an adequate fit.
 ```{r}
 pchisq(lmod$deviance, lmod$df.residual, lower = FALSE)
 ```
-A rule of thumb to use this asymptotic approximation is $m_i \ge 5$.
 
 - Significance of the predictor `temp` can be evaluated using a similar analysis of deviance test.
 ```{r}
@@ -136,7 +136,7 @@ In the case of binomial model, we get
 X^2 &=& \sum_i \frac{(y_i - n_i \widehat{p}_i)^2}{n_i \widehat{p}_i} + \frac{[(n_i - y_i) - n_i (1 - \widehat{p}_i)]^2}{n_i (1 - \widehat{p}_i)}  \\
 &=& \sum_i \frac{(y_i - n_i \widehat{p}_i)^2}{n_i \widehat{p}_i (1 - \widehat{p}_i)}.
 \end{eqnarray*}
-Comparing Pearson $X^2$ statistic to the asymptotic null distribution $\chi^2$ with degrees of freedom $n - q - 1$ gives a goodness of fit test.
+Comparing Pearson $X^2$ statistic to the asymptotic null distribution $\chi_{n - q - 1}^2$ gives a goodness of fit test.
 ```{r}
 predprob <- predict(lmod, type = "response")
 # Pearson X2 statistic
@@ -147,7 +147,7 @@ This large p-value indicates that this model fits data well.
 
 - We can define the **Perason residuals** as
 $$
-r_i^{\text{P}} = \frac{y_i - n_i \widehat{p}_i}{\sqrt{\operatorname{var} \widehat{y}_i}}.
+r_i^{\text{P}} = \frac{y_i - n_i \widehat{p}_i}{\sqrt{\operatorname{Var} \widehat{y}_i}}.
 $$
 Then
 $$
@@ -211,7 +211,7 @@ $$
 $$
 The dispersion parameter $\sigma^2$ can be estimated by
 $$
-\widehat{\sigma}^2 = \frac{X^2}{n - p},
+\widehat{\sigma}^2 = \frac{X^2}{n - q - 1},
 $$
 where $p$ is the number of parameters consumed by the logistic regression. Estimation of $\boldsymbol{\beta}$ is unchanged but the inference is changed
 $$
