@@ -309,7 +309,7 @@ $$
 \widehat{\phi} = \frac{X^2}{n - p}.
 $$
 
-- The `mammalsleep` data records the sleep behavior of 62 mammals.
+- Let's revisit the `troutegg` example.
 ```{r}
 modl <- glm(survive / total ~ location + period, 
             family = "quasibinomial", data = troutegg)
