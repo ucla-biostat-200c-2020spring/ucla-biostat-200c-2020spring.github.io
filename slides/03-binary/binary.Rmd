@@ -508,19 +508,24 @@ set.seed(200)
 # list = FALSE, request result to be in a matrix (of row position) not a list
 training_samples <- wcgs$chd %>%
   createDataPartition(p = 0.8, list = FALSE)
-(train_data <- wcgs %>%
-  slice(training_samples[, 1]))
-(val_data   <- wcgs %>%
-  slice(-training_samples[, 1]))
+# (train_data <- wcgs %>%
+#   slice(training_samples[, 1]))
+# (val_data   <- wcgs %>%
+#   slice(-training_samples[, 1]))
 ```
 The `glmnet` package takes a matrix (of predictors) and a vector (of responses) as input. We use `model.matrix` function to create them. `glmnet` will add intercept by default, so we drop intercept term when forming `x` matrix.
 ```{r}
-x_train <- model.matrix(
+# X and y from original data
+x_all <- model.matrix(
   chd ~ - 1 + age + height + weight + bmi + sdp + dbp + chol + dibep + cigs + arcus, 
-  data = train_data)
-x_train %>% head(10)
-y_train <- ifelse(train_data$chd == "yes", 1, 0)
-y_train %>% head(10)
+  data = wcgs)
+y_all <- ifelse(wcgs$chd == "yes", 1, 0)
+# training X and y
+x_train <- x_all[training_samples[, 1], ]
+y_train <- y_all[training_samples[, 1]]
+# validation X and y
+x_val <- x_all[-training_samples[, 1], ]
+y_val <- y_all[-training_samples[, 1]]
 ```
 Fit lasso regression and plot solution path:
 ```{r}
@@ -538,11 +543,6 @@ $$
 
 - Now we can evaluate the performance of the models (corresponding to different $\lambda$ values) on the validation set.
 ```{r}
-# form y and x from validation data
-x_val <- model.matrix(
-  chd ~ - 1 + age + height + weight + bmi + sdp + dbp + chol + dibep + cigs + arcus, 
-  data = val_data)
-y_val <- ifelse(val_data$chd == "yes", 1, 0)
 # predict validation case probabilities at different \lambda values and calculate test deviance
 pred_val <- predict(lasso_fit, newx = x_val, type = "response", s = lasso_fit$lambda)
 dev_val <- -2 * colSums(y_val * log(pred_val) + (1 - y_val) * log(1 - pred_val))
@@ -555,12 +555,6 @@ tibble(lambda = lasso_fit$lambda, dev_val = dev_val) %>%
 From the graph, it seems that $\lambda = 0.005$ yields a model that performs best on the validation set.  
 
 - Now the question is whether we should make decision on this single training-validation split? A common strategy is to use **cross validation**. 
-```{r}
-x_all <- model.matrix(
-  chd ~ - 1 + age + height + weight + bmi + sdp + dbp + chol + dibep + cigs + arcus, 
-  data = wcgs)
-y_all <- ifelse(wcgs$chd == "yes", 1, 0)
-```
 ```{r}
 set.seed(200)
 cv_lasso <- cv.glmnet(x_all, y_all, alpha = 1, family = "binomial", 
