@@ -47,7 +47,7 @@ $$
 tibble(t = seq(-6, 6, 0.1), pdf = dlogis(t, location = 0, scale = 1)) %>%
   ggplot() + 
   geom_line(mapping = aes(x = t, y = pdf)) + 
-  labs(x = "t", y = "density", title = "Logistic(0, 1) distribution")
+  labs(x = "t", y = "Density", title = "Logistic(0, 1) distribution")
 ```
 
 
@@ -65,21 +65,32 @@ is not the only choice for Bernoulli and binomial regression.
 $$
 \eta = g(p) = \Phi^{-1}(p),
 $$
-where $\Phi$ is the cumulative distribution function (cdf) of a standard normal. 
+where $\Phi$ is the cumulative distribution function (cdf) of a standard normal. The corresponding inverse link function is
+$$
+p = \Phi(\eta).
+$$
 
 - **Complementary log-log** link functionm, corresponding to a Gumbel-distributed latent variable. 
 $$
 \eta = g(p) = \log ( - \log(1-p)).
 $$
+The corresponding inverse link function is
+$$
+p = e^{-e^{\eta}}.
+$$
 
 - **Cauchit** link function, corresponding to a Cauchy-distributed latent variable.
 $$
-\eta = g(p) = \tan^{-1}((p - 1/2) \pi).
+\eta = g(p) = \tan((p - 1/2) \pi).
+$$
+The corresponding inverse link function is
+$$
+p = \frac{\arctan(\eta)}{\pi} + \frac 12.
 $$
 
 ## Bliss data
 
-`bliss` data records the number of insests dying at different levels of insecticide concentration.
+`bliss` data records the number of insects dying at different levels of insecticide concentration.
 ```{r}
 bliss
 ```
@@ -90,8 +101,12 @@ mprobit  <- glm(cbind(dead, alive) ~ conc, family = binomial(link = probit),  da
 mcloglog <- glm(cbind(dead, alive) ~ conc, family = binomial(link = cloglog), data = bliss)
 mcauchit <- glm(cbind(dead, alive) ~ conc, family = binomial(link = cauchit), data = bliss)
 ```
-and compare their deviances
+and compare their deviances (equivalent to comparing their log-likelihoods)
 ```{r}
+# logLik(mlogit)
+# logLik(mprobit)
+# logLik(mcloglog)
+# logLik(mcauchit)
 mlogit$deviance
 mprobit$deviance
 mcloglog$deviance
@@ -120,7 +135,7 @@ tibble(dose    = df$conc,
   pivot_longer(logit:cauchit, names_to = "link", values_to = "pred") %>%
   ggplot() + 
   geom_line(mapping = aes(x = dose, y = pred, color = link)) + 
-  labs(x = "dose", y = "predicted probability", 
+  labs(x = "Dose", y = "Predicted probability", 
        title = "Predicions from different link functions")
 ```
 
@@ -248,7 +263,7 @@ $$
 
 - To quantify the uncertainty in estimating ED50 or LD50, we can use the delta method
 $$
-\operatorname{var} g\left(\widehat{\boldsymbol{\theta}}\right) \approx \nabla g\left(\widehat{\boldsymbol{\theta}}\right)^T \cdot \operatorname{Var} \widehat{\boldsymbol{\theta}} \cdot \nabla g\left(\widehat{\boldsymbol{\theta}}\right).
+\operatorname{Var} g\left(\widehat{\boldsymbol{\theta}}\right) \approx \nabla g\left(\widehat{\boldsymbol{\theta}}\right)^T \cdot \operatorname{Var} \widehat{\boldsymbol{\theta}} \cdot \nabla g\left(\widehat{\boldsymbol{\theta}}\right).
 $$
 For ED50 or LD50
 $$
@@ -282,7 +297,7 @@ dose.p(mlogit, p = c(0.25, 0.5, 0.75))
     2. one cannot estimate the effects of the variables used to determine the matches,  
     3. it may be difficult to generalize to the population.  
     
-- In a 1:M design, we match $M$ controls to each case. Suppose we have $n$ matched sets and we take $i=0$ to represent the case and $i=1,\ldots,M$ to represent the controls. We propose a logistic regression
+- In a **1:M design**, we match $M$ controls to each case. Suppose we have $n$ matched sets and we take $i=0$ to represent the case and $i=1,\ldots,M$ to represent the controls. We propose a logistic regression
 $$
 \text{logit}(p_j(\mathbf{x}_{ij})) = \alpha_j + \mathbf{x}_{ij}^T \boldsymbol{\beta},
 $$
