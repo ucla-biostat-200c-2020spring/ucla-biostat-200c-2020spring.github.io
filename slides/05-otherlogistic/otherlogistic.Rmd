@@ -27,8 +27,8 @@ library(faraway)
 - Consider a latent variable $T$ and let
 $$
 Y = \begin{cases}
-1 & \text{if } T > t \\
-0 & \text{if } T \le t
+1 & \text{if } T \le t \\
+0 & \text{if } T > t
 \end{cases}.
 $$
 Then
@@ -76,7 +76,7 @@ $$
 $$
 The corresponding inverse link function is
 $$
-p = e^{-e^{\eta}}.
+p = 1 - e^{-e^{\eta}}.
 $$
 
 - **Cauchit** link function, corresponding to a Cauchy-distributed latent variable.
@@ -164,7 +164,7 @@ babyfood %>%
   # change reference level to Breast and Girl
   mutate(food = relevel(food, ref = "Breast"), sex = relevel(sex, ref = "Girl")) %>% 
   glm(cbind(disease, nondisease) ~ sex + food, family = binomial, data = .) %>%
-  tbl_regression(intercept = TRUE)
+  tbl_regression(intercept = TRUE, exponentiate = TRUE)
 ```
 
 The regression coefficient 0.67 for `Bottle` respresents the increased risk of developing respiratory disease incurred by bottle feeding relative to breast feeding. Similarly the regression coefficient `0.31` represents the increased risk of boys relative to girls. 
@@ -177,7 +177,7 @@ babyfood %>%
   pivot_longer(disease:nondisease, names_to = "dis", values_to = "count") %>%
   mutate(dis = relevel(as.factor(dis), ref = "nondisease")) %>%
   glm(sex ~ dis + food, family = binomial, weights = count, data = .) %>%
-  tbl_regression(intercept = TRUE)
+  tbl_regression(intercept = TRUE, exponentiate = TRUE)
 ```
 
 - We see that using logistic regression for the retrospective design is as effective as a prospective design for estimating a relative risk. Retrospective design is more convenient because   
@@ -196,7 +196,7 @@ p(\mathbf{x}) &=& \text{unconditional probability that an individual has the dis
 \end{eqnarray*}
 By Bayes theorem
 $$
-p^\star(\mathbf{x}) = \frac{\pi_1 p(\mathbf{x})}{\pi_1 p(\mathbf{x}) + \pi_0 (1 - \pi_1 p(\mathbf{x}))},
+p^\star(\mathbf{x}) = \frac{\pi_1 p(\mathbf{x})}{\pi_1 p(\mathbf{x}) + \pi_0 (1 - p(\mathbf{x}))},
 $$
 which after rearrangement shows
 $$
@@ -267,7 +267,7 @@ $$
 $$
 For ED50 or LD50
 $$
-\nabla g(\beta_0, \beta_0) = \begin{pmatrix} - \frac{1}{\beta_1} \\ \frac{\beta_0}{\beta_1^2} \end{pmatrix}.
+\nabla g(\beta_0, \beta_1) = \begin{pmatrix} - \frac{1}{\beta_1} \\ \frac{\beta_0}{\beta_1^2} \end{pmatrix}.
 $$
 
 - For the `bliss` data, the standard error of LD50 is
@@ -348,10 +348,10 @@ clogit(disease ~ Fray + unclass(CnRay) + strata(ID), data = ramlxray) %>%
 
 - Let's start with the famours Fisher Iris data. We restrict to species `setosa` and `versicolor` and classify them using predictors `Sepal.Width` and `Sepal.Length`. 
 ```{r}
-irisr <- iris %>%
+(irisr <- iris %>%
   as_tibble() %>%
   filter(Species == "setosa" | Species == "versicolor") %>%
-  dplyr::select(Sepal.Width, Sepal.Length, Species)
+  dplyr::select(Sepal.Width, Sepal.Length, Species))
 ```
 
 - We fit a logistic regression:
