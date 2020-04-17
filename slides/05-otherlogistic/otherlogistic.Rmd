@@ -307,10 +307,13 @@ p_j(\mathbf{x}_{ij}) = \frac{e^{\alpha_j + \mathbf{x}_{ij}^T \boldsymbol{\beta}}
 $$
 
 - Given a matched set $j$ of $M+1$ subjects known to have one case and $M$ controls, the conditional probability of the observed outcome, or, in other words, that subject $i=0$ is the case and the rest are controls is
-$$
-\frac{p_j(\mathbf{x}_{0j})}{\sum_{i=0}^M p_j(\mathbf{x}_{0j})} =  \frac{\exp \mathbf{x}_{0j}^T \boldsymbol{\beta}}{\sum_{i=0}^M \exp \mathbf{x}_{ij}^T \boldsymbol{\beta}}.
-$$
-$\alpha_j$ conveniently cancels out in this expression. We can form the conditional likelihood function
+\begin{eqnarray*}
+& & \mathbb{P} \left( Y_{0j}=1, Y_{1j}=\cdots = Y_{Mj}=0 \mid \sum_{i=0}^M Y_{ij} = 1 \right) \\
+&=& \frac{p_j(\mathbf{x}_{0j}) \prod_{i=1}^M (1 - p_j(\mathbf{x}_{ij}))}{\sum_{i=0}^M p_j(\mathbf{x}_{ij}) \prod_{i'\ne i} (1 - p_j(\mathbf{x}_{i'j}))} \\
+&=&  \frac{\exp \mathbf{x}_{0j}^T \boldsymbol{\beta}}{\sum_{i=0}^M \exp \mathbf{x}_{ij}^T \boldsymbol{\beta}} \\
+&=& \frac{1}{1 + \sum_{i=1}^M \exp (\mathbf{x}_{ij} - \mathbf{x}_{0j})^T \boldsymbol{\beta}}.
+\end{eqnarray*}
+$\alpha_j$ conveniently cancels out in the final expression. We can form the conditional likelihood function
 $$
 L(\boldsymbol{\beta}) = \prod_{j=1}^n \frac{1}{1 + \sum_{i=1}^M \exp (\mathbf{x}_{ij} - \mathbf{x}_{0j})^T \boldsymbol{\beta}},
 $$
