@@ -301,15 +301,18 @@ dose.p(mlogit, p = c(0.25, 0.5, 0.75))
 $$
 \text{logit}(p_j(\mathbf{x}_{ij})) = \alpha_j + \mathbf{x}_{ij}^T \boldsymbol{\beta},
 $$
-where $\alpha_j$ models the effect of the confounding variables in the $j$-th matched set.
+where $\alpha_j$ models the effect of the confounding variables in the $j$-th matched set. Thus
+$$
+p_j(\mathbf{x}_{ij}) = \frac{e^{\alpha_j + \mathbf{x}_{ij}^T \boldsymbol{\beta}}}{1 + e^{\alpha_j + \mathbf{x}_{ij}^T \boldsymbol{\beta}}}, \quad i = 0, 1, \ldots, M.
+$$
 
 - Given a matched set $j$ of $M+1$ subjects known to have one case and $M$ controls, the conditional probability of the observed outcome, or, in other words, that subject $i=0$ is the case and the rest are controls is
 $$
-\frac{\exp \mathbf{x}_{0j}^T \boldsymbol{\beta}}{\sum_{i=0}^M \exp \mathbf{x}_{ij}^T \boldsymbol{\beta}}.
+\frac{p_j(\mathbf{x}_{0j})}{\sum_{i=0}^M p_j(\mathbf{x}_{0j})} =  \frac{\exp \mathbf{x}_{0j}^T \boldsymbol{\beta}}{\sum_{i=0}^M \exp \mathbf{x}_{ij}^T \boldsymbol{\beta}}.
 $$
 $\alpha_j$ conveniently cancels out in this expression. We can form the conditional likelihood function
 $$
-L(\boldsymbol{\beta}) = \prod_{j=1}^n \frac{1}{1 + \sum_{i=0}^M \exp (\mathbf{x}_{ij} - \mathbf{x}_{0j})^T \boldsymbol{\beta}},
+L(\boldsymbol{\beta}) = \prod_{j=1}^n \frac{1}{1 + \sum_{i=1}^M \exp (\mathbf{x}_{ij} - \mathbf{x}_{0j})^T \boldsymbol{\beta}},
 $$
 which is identical to that from a proportional hazards mdoel.
 
