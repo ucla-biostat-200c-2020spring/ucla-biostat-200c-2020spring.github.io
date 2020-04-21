@@ -211,8 +211,7 @@ summary(haireye_table)
       dim1  = sqrt(svdr$d[1]) * c(svdr$u[, 1], svdr$v[, 1]),
       dim2  = sqrt(svdr$d[2]) * c(svdr$u[, 2], svdr$v[, 2]),
       label = c(rownames(R), colnames(R)),
-      var   = rep(c("hair", "eye"), each = 4),
-      size  = rep(c(2, 1.5), each = 4)) %>%
+      var   = rep(c("hair", "eye"), each = 4)) %>%
       print(n = Inf)
     ```
     ```{r}
@@ -238,7 +237,7 @@ summary(haireye_table)
 
 ## Three-way contingency tables
 
-- The `femsoke` records female smokers and non-smokers, their age group, and whether the subjects were dead or still alive. 
+- The `femsoke` records female smokers and non-smokers, their age group, and whether the subjects were dead or still alive after 20 years.
 ```{r}
 femsmoke <- as_tibble(femsmoke) %>%
   print(n = Inf)
