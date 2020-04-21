@@ -134,6 +134,18 @@ gala %>%
   labs(x = "Linear predictor", y = "Pearson residual")
 ```
 
+- Any high leverage points? `Fernandina` and `Isabela` islands have high elevation and relatively large area.
+```{r}
+halfnorm(hatvalues(modp))
+gala %>%
+  slice(c(12, 16))
+```
+
+- Any high influential points?
+```{r}
+halfnorm(cooks.distance((modp)))
+```
+
 - For Poisson distribution, $\mathbb{E}Y_i = \operatorname{Var}Y_i = \mu_i$. Let's check this assumption. We use $(y_i - \widehat{\mu}_i)^2$ as a crude estimate of $\operatorname{Var}Y_i$. Majority of points are above the 45 degree line. Looks like we have overdispersion. 
 ```{r}
 gala %>%
@@ -166,8 +178,8 @@ $$
 ```{r}
 summary(modp, dispersion = dp)
 ```
-```{r}
-drop1(modp, scale = dp, test = "Chisq")
+```{r, eval = F}
+drop1(modp, scale = dp, test = "F")
 ```
 
 ## Quasi-Poisson
@@ -188,7 +200,7 @@ drop1(modd, test = "F")
 
 ## Negative bionomial regression
 
-- An alternative to Poisson model is the negative binomial distribution with probability mass function
+- An alternative to Poisson model is the **negative binomial distribution** with probability mass function
 $$
 \mathbb{P}(Y = y) = \binom{y + r - 1}{r - 1} (1 - p)^r p^y, \quad y = 0, 1, \ldots
 $$
@@ -196,7 +208,7 @@ HW2: show $\mathbb{E}Y = \mu = rp / (1 - p)$ and $\operatorname{Var} Y = r p / (
 
 ![](./Negbinomial.gif)
 
-- We can link mean response $\mu$ to the predictors via log link function
+- We can relate mean response $\mu$ to the predictors via log link function
 $$
 \eta = \mathbf{x}^T \boldsymbol{\beta} = \log \mu.
 $$
@@ -259,7 +271,7 @@ tibble(ocount = table(bioChemists$art)[1:8],    # observed count for 0:7
 \mathbb{P}(Y = 0) &=& f_1(0), \\
 \mathbb{P}(Y = j) &=& \frac{1 - f_1(0)}{1 - f_2(0)} f_2(j), \quad j > 0.
 \end{eqnarray*}
-We shall use a Bernoulli response model for $f_1$ to model the probability of observing 0, and use the zero-truncated Poisson model for $f_2$ to model the probability of observing an outcome greater than 0. 
+We shall use a Bernoulli response model for $f_1(1)$ to model the probability of getting over the hurdle 0, and use the zero-truncated Poisson model for $f_2$ to model the probability of observing an outcome greater than 0. 
 
 ```{r}
 library(gtsummary)
@@ -305,7 +317,7 @@ pchisq(lrt, 6, lower.tail = FALSE)
 exp(coef(modz2))
 ```
 
-- Prediction. For a single male with no children whos mentor procuded six articles, we predict that the chance he produces no articles is 0.278. 
+- Prediction. For a single male with no children whose mentor procuded six articles, we predict that the chance he produces no articles is 0.278. 
 ```{r}
 tibble(fem = "Men", mar = "Single", kid5 = 0, ment = 6) %>%
   predict(modz2, newdata = ., type = "prob")
