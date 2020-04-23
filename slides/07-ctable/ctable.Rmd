@@ -329,7 +329,7 @@ $$
 
 - Let $P_{ij \mid k}$ be the probability that an observation falls in $(i, j)$-cell given that we know the third variables takes value $k$. If we assume that first two variables are independent give value of the third. Then
 $$
-p_{ijk} = \frac{p_{ik} p_{jk}}{p_k}
+p_{ijk} = p_{ij\mid k} p_k = p_{i\mid k} p_{j \mid k} p_k = \frac{p_{ik} p_{jk}}{p_k}.
 $$
 and
 $$
@@ -363,8 +363,8 @@ summary(modu)
 
 - If we compute the odds ratio for each age group
 ```{r}
-ctf <- xtabs(fitted(modu) ~ smoker + dead + age, data = femsmoke)
-apply(ctf, 3, function(x) (x[1, 1] * x[2, 2]) / (x[1, 2] * x[2, 1]))
+xtabs(fitted(modu) ~ smoker + dead + age, data = femsmoke) %>%
+  apply(3, function(x) (x[1, 1] * x[2, 2]) / (x[1, 2] * x[2, 1]))
 ```
 Thus the name uniform association model.
 
@@ -375,13 +375,13 @@ Thus the name uniform association model.
 
 ### Model selection
 
-- We can start from the saturated model and use analysis deviance to see how much we can reduce the model.
+- We can start from the saturated model (3-way interaction) and use the analysis of deviance to see how much we can reduce the model.
 ```{r}
 glm(y ~ smoker * age * dead, family = poisson, data = femsmoke) %>%
   step(test = "Chi") %>%
   drop1(test = "Chi")
 ```
-The interaction term `smoker:dead` is weakly significant in the final model. This corresponds to the test of conditional independence between `smoke` and `dead` given age group. The p-value is very similar to that from the CMH test.
+The interaction term `smoker:dead` is weakly significant in the final model. This corresponds to the test of conditional independence between `smoke` and `dead` given `age` group. The p-value is very similar to that from the CMH test.
 
 ### Binomial
 
