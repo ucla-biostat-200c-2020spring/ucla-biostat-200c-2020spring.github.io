@@ -24,7 +24,9 @@ library(faraway)
 
 ## Two-by-two tables
 
-![](./outlook-for-the-global-semi-conductor-silicon-wafer-industry.jpg)
+<p align="center">
+  <img src="./outlook-for-the-global-semi-conductor-silicon-wafer-industry.jpg" height="300">
+</p>
 
 Image source: <https://www.gep.com/mind/blog/outlook-for-the-global-semiconductor-silicon-wafer-industry>
 
@@ -127,6 +129,7 @@ ytable <- xtabs(y ~ particle + quality, data = wafer)
 tibble(good     = c(320, 14),
        bad      = c(80, 36),
        particle = c("no", "yes")) %>%
+  print() %>%
   glm(cbind(good, bad) ~ 1, family = binomial, data = .) %>%
   summary()
 ```
@@ -134,7 +137,7 @@ The alternative model corresponds to the full/saturated model where `particle` i
 
 - Again we observe the exactly same analysis of deviance inference. 
 
-- When there are more than rows or columns, this model is called the **product binoimal/multinomial model**.
+- When there are more than two rows or columns, this model is called the **product binoimal/multinomial model**.
 
 ### Hypergeometric
 
@@ -237,7 +240,7 @@ summary(haireye_table)
 
 ## Three-way contingency tables
 
-- The `femsoke` records female smokers and non-smokers, their age group, and whether the subjects were dead or still alive after 20 years.
+- The `femsoke` data records female smokers and non-smokers, their age group, and whether the subjects were dead or still alive after 20 years.
 ```{r}
 femsmoke <- as_tibble(femsmoke) %>%
   print(n = Inf)
@@ -336,7 +339,7 @@ $$
 \log \mathbb{E} Y_{ijk} = \log n + \log p_{ik} + \log p_{jk} - \log p_k.
 $$
 
-- It leads to a model with with two interaction terms
+- It leads to a model with two interaction terms
 ```{r}
 glm(y ~ smoker * age + dead * age, family = poisson, data = femsmoke) %>%
   summary()
