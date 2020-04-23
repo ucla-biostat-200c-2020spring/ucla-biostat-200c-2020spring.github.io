@@ -158,7 +158,7 @@ fisher.test(ytable)
 ```
 The odds ratio is
 $$
-\frac{\pi_{\text{particle}} / (1 - \pi_{\text{particle}})}{\pi_{\text{no particle}} / (1 - \pi_{\text{no particle}})} = \frac{y_{11} y_{22}}{y_{12} y_{21}}
+\frac{\pi_{\text{no particle}} / (1 - \pi_{\text{no particle}})}{\pi_{\text{particle}} / (1 - \pi_{\text{particle}})} = \frac{y_{11} y_{22}}{y_{12} y_{21}}
 $$
 ```{r}
 (320 * 36) / (14 * 80)
