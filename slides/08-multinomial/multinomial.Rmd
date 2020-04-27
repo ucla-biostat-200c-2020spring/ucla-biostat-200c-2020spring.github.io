@@ -1,7 +1,7 @@
 ---
 title: "Multinomial Data (ELMR Chapter 7)"
 author: "Dr. Hua Zhou @ UCLA"
-date: "Apr 23, 2020"
+date: "Apr 28, 2020"
 output:
   # ioslides_presentation: default
   html_document:
@@ -35,20 +35,23 @@ $$
 $$
   \eta_{ij} = \mathbf{x}_i^T \boldsymbol{\beta}_j = \log \frac{p_{ij}}{p_{i1}}, \quad j = 2,\ldots,J.
 $$
-We need to obey the constraint that $\sum_{i=1}^J p_{ij} = 1$ so it is convenient to declare one of the categories as the baseline say $j=1$. So we set $p_{i1} = 1 - \sum_{j=2}^J p_{ij}$ and have
+We need to obey the constraint that $\sum_{i=1}^J p_{ij} = 1$ so it is convenient to declare one of the categories as the baseline say $j=1$. Then we set $p_{i1} = 1 - \sum_{j=2}^J p_{ij}$ and have
 $$
   p_{ij} = \frac{\exp(\eta_{ij})}{1 + \sum_{j=2}^J \exp(\eta_{ij})}.
 $$
-We may estimate the parameters using MLE and the standard methods for inference.
+- We may estimate the parameters using MLE and the standard methods for inference.
 
 ### 1996 election data
 
-- Consider an example of the 1996 American National Election Study. We consider only the education level and income group of the respondents. 
+- Consider an example of the 1996 American National Election Study. We consider only the education level and income group of the respondents. We will study how party identification of the respondent (Democrat, Independent or Republican) depends on predictors age, education level, and income. 
 ```{r}
 (nes96 <- as_tibble(nes96))
+```
+
+- Numerical summaries:
+```{r}
 summary(nes96)
 ```
-We will study how party identification of the respondent (Democrat, Independent or Republican) depends on predictors age, education level, and income. 
 
 - The original variable `PID` (party identification) has ordered categories `strDem` (strong democratic), `weakDem` (weak democratic), `indDem` (independent democratic), `indind` (independent), `indRep` (independent republican), `weakRep` (weak Republican), and `strRep` (strong republican). In this analysis we only consider the coarsened categories: `Democratic`, `Independent`, and `Republican`.
 
@@ -121,18 +124,9 @@ nes96 %>%
   theme(axis.text.x = element_text(angle = 90))
 ```
 
-```{r, eval=FALSE}
-cutinc <- cut(nes96$nincome, 7)
-il <- c(8, 26, 42, 58, 74, 90, 107)
-matplot(il, prop.table(table(cutinc, nes96$sPID), 1), lty = c(1, 2, 5), type = "l", ylab = "Proportion", xlab = "Income")
-cutage <- cut(nes96$age, 7)
-al <- c(24, 34, 44, 54, 65, 75, 85)
-matplot(al, prop.table(table(cutage, nes96$sPID), 1), lty = c(1, 2, 5), type = "l", ylab = "Proportion", xlab = "Age")
-```
-
 ### Fit multinomial-logit
 
-- To verify the trends observed in these graphs are statistical significant, we need a formal model.  The `multinom` function is avaible in the `nnet` package.
+- To verify that the trends observed in these graphs are statistical significant, we need a formal model.  The `multinom` function is avaible in the `nnet` package.
 ```{r}
 library(nnet)
 mmod <- multinom(sPID ~ age + educ + nincome, data = nes96)
@@ -199,28 +193,43 @@ Since $\gamma_{iJ}=1$, we only need to model $J-1$ cumulative probabilities.
 
 - To link $\gamma$s to covariats $x$, we consider
 $$
-  g(\gamma_{ij}) = \theta_j - x_i^T \beta,
+  g(\gamma_{ij}) = \theta_j - \mathbf{x}_i^T \boldsymbol{\beta},
 $$
-where $\theta_j$ have to be non-decreasing in $j$ to honor the ordering. In other words, $\beta$ has a uniform effect on the response categories and each category has its own intercept. Again we have at least 3 choices for the link function: logit, probit or cloglog. 
+where $\theta_j$ have to be non-decreasing in $j$ to honor the ordering. In other words, $\boldsymbol{\beta}$ has a uniform effect on the response categories and each category has its own intercept. Again we have at least 3 choices for the link function: logit, probit or cloglog. 
+- Latent variable interpretation.
+
+```{r}
+theta <- c(-2, -1, 2)
+tibble(t = seq(-6, 6, 0.1), pdf = dlogis(t, location = 0, scale = 1)) %>%
+  ggplot() + 
+  geom_line(mapping = aes(x = t, y = pdf)) + 
+  geom_segment(mapping = aes(x = theta[1], y = 0, xend = theta[1], yend = dlogis(theta[1]))) + 
+  geom_segment(mapping = aes(x = theta[2], y = 0, xend = theta[2], yend = dlogis(theta[2]))) + 
+  geom_segment(mapping = aes(x = theta[3], y = 0, xend = theta[3], yend = dlogis(theta[3]))) +
+  labs(x = "t", y = "Density", title = "Logistic(0, 1) distribution") + 
+  annotate("text", x = theta[1], y = 0, label = expression(theta[1])) + 
+  annotate("text", x = theta[2], y = 0, label = expression(theta[2])) + 
+  annotate("text", x = theta[3], y = 0, label = expression(theta[3]))
+```
 
 ### Proportional odds model
 
-- The mostly common logit link dictates
+- The logit link function dictates
 $$
-  \gamma_{ij} = \frac{\exp (\theta_j - x_i^T \beta)}{1 + \exp (\theta_j - x_i^T \beta)}.
-$$
-When $\beta > 0$, as $x_i$ increases, $\mathbb{P}(Y_i = J)$ will also increase. This motivats the minus sign in the definition of the model since it allows easier interpretation of $\beta$.
-
-- Let $\gamma_j(x_i) = \mathbb{P}(Y_i \le j \mid x_i)$, then
-$$
-  \log \frac{\gamma_j(x_i)}{1 - \gamma_j(x_i)} = \theta_j - x_i^T \beta, \quad j = 1,\ldots,J-1.
+  \log \frac{\gamma_{ij}}{1 - \gamma_{ij}} = \theta_j - \mathbf{x}_i^T \boldsymbol{\beta}, \quad j = 1,\ldots,J-1.
 $$
 
-- It is called the **proportional odds model** because the relative odds for $y \le j$ comparing $x_1$ and $x_2$ are
+- The corresponding inverse link function is
 $$
-  \left( \frac{\gamma_j(x_1)}{1 - \gamma_j(x_1)} \right) / \left( \frac{\gamma_j(x_2)}{1 - \gamma_j(x_2)} \right) = \exp (- (x_1 - x_2)^T \beta),
+  \gamma_{ij} = \frac{\exp (\theta_j - \mathbf{x}_i^T \boldsymbol{\beta})}{1 + \exp (\theta_j - \mathbf{x}_i^T \boldsymbol{\beta})}.
 $$
-which do not dependent on $j$.
+When $\beta_j > 0$, as $x_{ij}$ increases, $\mathbb{P}(Y_i = j)$ will also increase. This motivates the minus sign in the definition of the model since it allows easier interpretation of $\beta$.
+
+- It is called the **proportional odds model** because the relative odds for $y \le j$ comparing $\mathbf{x}_1$ and $\mathbf{x}_2$ are
+$$
+  \left( \frac{\gamma_j(\mathbf{x}_1)}{1 - \gamma_j(\mathbf{x}_1)} \right) / \left( \frac{\gamma_j(\mathbf{x}_2)}{1 - \gamma_j(\mathbf{x}_2)} \right) = \exp (- (\mathbf{x}_1 - \mathbf{x}_2)^T \boldsymbol{\beta}),
+$$
+which do not dependent on $j$. Here $\gamma_j(\mathbf{x}_i) = \gamma_{ij}$.
 
 - We can fit a proportional odds model using the `polr` function from the MASS library
 ```{r}
@@ -236,12 +245,13 @@ which can be compared to the corresponding multinomial logit model
 ```{r}
 c(deviance(mmod), mmod$edf)
 ```
+What's the conclusion?
 
 ### Ordered probit model
 
 - If we use the probit link, then
 $$
-  \Phi^{-1}(\gamma_j(x_i)) = \theta_j - x_i^T \beta, \quad j=1,\ldots,J-1.
+  \Phi^{-1}(\gamma_j(\mathbf{x}_i)) = \theta_j - \mathbf{x}_i^T \boldsymbol{\beta}, \quad j=1,\ldots,J-1.
 $$
 ```{r}
 opmod <- polr(nes96$sPID ~ nes96$nincome, method = "probit")
@@ -253,7 +263,7 @@ The deviance is similar to the logit link, but the coefficients appear to be dif
 
 - Suppose we use the cloglog link
 $$
-  \log (- \log (1 - \gamma_j(x_i))) = \theta_j - x_i^T \beta.
+  \log (- \log (1 - \gamma_j(\mathbf{x}_i))) = \theta_j - \mathbf{x}_i^T \boldsymbol{\beta}.
 $$
 The *hazard* of category $j$ is the probability of falling in category $j$ given that your category is greater than $j$
 $$
@@ -261,7 +271,7 @@ $$
 $$
 It is called the **proportional hazards model** because of the relation
 $$
-  \mathbb{P}(Y > j \mid x_1) = [\mathbb{P}(Y > j \mid x_2)]^{\exp (x_1 - x_2)^T \beta}.
+  \mathbb{P}(Y > j \mid \mathbf{x}_1) = [\mathbb{P}(Y > j \mid \mathbf{x}_2)]^{\exp (\mathbf{x}_1 - \mathbf{x}_2)^T \beta}.
 $$
 
 ```{r}
