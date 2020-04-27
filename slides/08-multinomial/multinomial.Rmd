@@ -39,6 +39,8 @@ We need to obey the constraint that $\sum_{i=1}^J p_{ij} = 1$ so it is convenien
 $$
   p_{ij} = \frac{\exp(\eta_{ij})}{1 + \sum_{j=2}^J \exp(\eta_{ij})}.
 $$
+- Suppose the length of $\mathbf{x}_i$ is $p$, then the multinomial-logit model consumes $p(J-1)$ parameters.
+
 - We may estimate the parameters using MLE and the standard methods for inference.
 
 ### 1996 election data
@@ -133,27 +135,48 @@ mmod <- multinom(sPID ~ age + educ + nincome, data = nes96)
 summary(mmod)
 ```
 
-- We can select which variables to include in the model based the AIC criterion using a
-stepwise search method.
+- We can select which variables to include in the model based the AIC criterion using a stepwise search method.
 ```{r}
-mmodi <- step(mmod)
+step(mmod)
 ```
 
-- Or we can use the standard likelihood methods to derive a test to compare nested models. For example, we can fit a model without education and then compare the deviances
+- Or we can use the standard likelihood methods to derive a test to compare nested models. For example, we can fit a model with predictor `nincome` only and then compare the deviances.
 ```{r}
-mmode <- multinom(sPID ~ age + nincome, nes96)
-deviance(mmode) - deviance(mmod)
-pchisq(16.206, mmod$edf - mmode$edf, lower = F)
+mmodi <- multinom(sPID ~ nincome, data = nes96)
+deviance(mmodi) - deviance(mmod)
+mmod$edf - mmodi$edf
+pchisq(deviance(mmodi) - deviance(mmod), mmod$edf - mmodi$edf, lower = F)
 ```
-We see education is not significant relative to the full model. This may seem
-somewhat surprising given the plot, but the large differences between
-proportions of Democrats and Republicans occur for groups with low education which
-represent only a small number of people.
 
-- We can obtain predicted values for specified values of income. For example, suppose we pick the midpoints of the income groups we selected for the earlier plot
+- To interpret the coefficients:
+```{r}
+summary(mmodi)
+```
+
+    - The intercept terms model the probabilities of party identification when income is zero.
+```{r}
+cc <- c(0, -1.17493, -0.95036)
+exp(cc) / sum(exp(cc))
+```
+    
+    - The slope terms represent the log-odds of moving from the baseline category `Democrat` to `Independent` and `Republican` respectively for a unit change of $1000 in income. 
+```{r}
+(pp <- predict(mmodi, data.frame(nincome = c(0, 1)), type = "probs"))
+log(pp[1, 1] * pp[2, 2] / (pp[1, 2] * pp[2, 1]))
+log(pp[1, 1] * pp[2, 3] / (pp[1, 3] * pp[2, 1]))
+```
+
+- We can obtain predicted values for specified values of income.
 ```{r}
 il <- c(8, 26, 42, 58, 74, 90, 107)
-predict(mmodi, data.frame(nincome = il), type = "probs")
+predict(mmodi, data.frame(nincome = il), type = "probs") %>%
+  as_tibble() %>%
+  mutate(income = il) %>%
+  pivot_longer(Democrat:Republican, names_to = "sPID", values_to = "prob") %>%
+  ggplot() + 
+  geom_line(mapping = aes(x = income, y = prob, group = sPID, color = sPID)) +
+  scale_color_manual(values = c("blue", "green", "red")) + 
+  labs(x = "Income", y = "Probability")
 ```
 
 ## Hierarchical or nested responses
@@ -206,7 +229,7 @@ tibble(t = seq(-6, 6, 0.1), pdf = dlogis(t, location = 0, scale = 1)) %>%
   geom_segment(mapping = aes(x = theta[1], y = 0, xend = theta[1], yend = dlogis(theta[1]))) + 
   geom_segment(mapping = aes(x = theta[2], y = 0, xend = theta[2], yend = dlogis(theta[2]))) + 
   geom_segment(mapping = aes(x = theta[3], y = 0, xend = theta[3], yend = dlogis(theta[3]))) +
-  labs(x = "t", y = "Density", title = "Logistic(0, 1) distribution") + 
+  labs(x = "t", y = "Density") + 
   annotate("text", x = theta[1], y = 0, label = expression(theta[1])) + 
   annotate("text", x = theta[2], y = 0, label = expression(theta[2])) + 
   annotate("text", x = theta[3], y = 0, label = expression(theta[3]))
@@ -237,15 +260,54 @@ library(MASS)
 pomod <- polr(sPID ~ age + educ + nincome, data = nes96)
 summary(pomod)
 ```
-The deviance and number of parameters are
+
+- Stepwise regression leads to a model with only one predictor `nincome`.
 ```{r}
-c(deviance(pomod), pomod$edf)
+pomodi <- step(pomod)
+summary(pomodi)
+```
+
+- Analysis of deviance also justifies the model with only `nincome`.
+```{r}
+c(deviance(pomodi), pomodi$edf)
 ```
 which can be compared to the corresponding multinomial logit model
 ```{r}
-c(deviance(mmod), mmod$edf)
+c(deviance(pomod), pomod$edf)
 ```
-What's the conclusion?
+We see the proportional odds model is justifiable.
+```{r}
+pchisq(deviance(pomodi) - deviance(pomod), 
+       pomod$edf - pomodi$edf, 
+       lower.tail = FALSE)
+```
+
+- Interpretation of coefficients. 
+
+    - The odds of moving from `Democratic` to `Independent` or from `Independent` to `Republican` increases by a factor of 
+    ```{r} 
+    exp(pomodi$coef[1])
+    ```
+    as income increases by one unit ($1000). 
+    
+    - For income of $0, the predicted probability of being a `Democrat` is
+    ```{r}
+    ilogit(pomodi$zeta[1])
+    ```
+    and that of being an `Independent` is
+    ```{r}
+    ilogit(pomodi$zeta[2]) - ilogit(pomodi$zeta[1])
+    ```
+    and that of being a `Republican` is
+    ```{r}
+    1 - ilogit(pomodi$zeta[2])
+    ```
+
+- The predicted probabilities of each category at each income level is
+```{r}
+l <- c(8, 26, 42, 58, 74, 90, 107)
+predict(pomodi, data.frame(nincome = il), type = "probs")
+```
 
 ### Ordered probit model
 
@@ -254,10 +316,15 @@ $$
   \Phi^{-1}(\gamma_j(\mathbf{x}_i)) = \theta_j - \mathbf{x}_i^T \boldsymbol{\beta}, \quad j=1,\ldots,J-1.
 $$
 ```{r}
-opmod <- polr(nes96$sPID ~ nes96$nincome, method = "probit")
+opmod <- polr(sPID ~ nincome, method = "probit", data = nes96)
 summary(opmod)
 ```
-The deviance is similar to the logit link, but the coefficients appear to be different. The predictions are similar.
+
+- The deviance is similar to the logit link, but the coefficients appear to be different. The predictions are similar.
+```{r}
+l <- c(8, 26, 42, 58, 74, 90, 107)
+predict(opmod, data.frame(nincome = il), type = "probs")
+```
 
 ### Proportional hazards model
 
@@ -265,7 +332,8 @@ The deviance is similar to the logit link, but the coefficients appear to be dif
 $$
   \log (- \log (1 - \gamma_j(\mathbf{x}_i))) = \theta_j - \mathbf{x}_i^T \boldsymbol{\beta}.
 $$
-The *hazard* of category $j$ is the probability of falling in category $j$ given that your category is greater than $j$
+
+- The **hazard** of category $j$ is the probability of falling in category $j$ given that your category is greater than $j$
 $$
   \text{Hazard}(j) = \mathbb{P}(Y_i = j \mid Y_i \ge j) = \frac{\mathbb{P}(Y_i = j)}{\mathbb{P}(Y_i \ge j)} = \frac{\gamma_{ij} - \gamma_{i,j-1}}{1 - \gamma_{i,j-1}}.
 $$
@@ -277,3 +345,4 @@ $$
 ```{r}
 polr(sPID ~ nincome, method = "cloglog", data = nes96)
 ```
+We see a relatively worse fit than proportional odds and ordered probit models.
