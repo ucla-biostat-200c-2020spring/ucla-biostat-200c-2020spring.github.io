@@ -21,7 +21,7 @@ Zoom link: <https://ucla.zoom.us/j/176728998>, for call in dial +1-669-900-6833 
 | 4 | [4/21](https://ucla-biostat-200c-2020spring.github.io/biostat200cspring2020/2020/04/21/week4-day1.html) Poisson regression (ELMR 5) \[[Rmd](https://raw.githubusercontent.com/ucla-biostat-200c-2020spring/ucla-biostat-200c-2020spring.github.io/master/slides/06-count/count.Rmd), [html](../slides/06-count/count.html)\] | [4/23](https://ucla-biostat-200c-2020spring.github.io/biostat200cspring2020/2020/04/23/week4-day2.html) contingency tables (ELMR 6) \[[Rmd](https://raw.githubusercontent.com/ucla-biostat-200c-2020spring/ucla-biostat-200c-2020spring.github.io/master/slides/07-ctable/ctable.Rmd), [html](../slides/07-ctable/ctable.html)\] | |  
 | 5 | [4/28](https://ucla-biostat-200c-2020spring.github.io/biostat200cspring2020/2020/04/28/week5-day1.html) multinomial data (ELMR 7) \[[Rmd](https://raw.githubusercontent.com/ucla-biostat-200c-2020spring/ucla-biostat-200c-2020spring.github.io/master/slides/08-multinomial/multinomial.Rmd), [html](../slides/08-multinomial/multinomial.html)\] | 4/30 GLM (ELMR 8) \[[Rmd](https://raw.githubusercontent.com/ucla-biostat-200c-2020spring/ucla-biostat-200c-2020spring.github.io/master/slides/09-glm/glm.Rmd), [html](../slides/09-glm/glm.html)\] | HW3 \[[Rmd](https://raw.githubusercontent.com/ucla-biostat-200c-2020spring/ucla-biostat-200c-2020spring.github.io/master/hw/hw3/hw3.Rmd), [html](../hw/hw3/hw3.html)\] |  
 | 6 | 5/5 mixed models | 5/7 | HW4 |  
-| 7 | 5/12 | 5/14 | midterm |   
+| 7 | 5/12 | 5/14 midterm |  |   
 | 8 | 5/19 GAM | 5/21 | HW5 |   
 | 9 | 5/26 trees | 5/28 | |  
 | 10 | 6/2 neural network | 6/4 | final |  
