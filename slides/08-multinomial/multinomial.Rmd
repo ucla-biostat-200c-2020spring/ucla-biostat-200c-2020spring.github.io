@@ -246,7 +246,7 @@ $$
 $$
   \gamma_{ij} = \frac{\exp (\theta_j - \mathbf{x}_i^T \boldsymbol{\beta})}{1 + \exp (\theta_j - \mathbf{x}_i^T \boldsymbol{\beta})}.
 $$
-When $\beta_j > 0$, as $x_{ij}$ increases, $\mathbb{P}(Y_i = j)$ will also increase. This motivates the minus sign in the definition of the model since it allows easier interpretation of $\beta$.
+When $\beta_j > 0$, as $x_{ij}$ increases, $\gamma_{ij} = \mathbb{P}(Y_i \le j)$ decreases the same amount for all $j < J$, thus $Y_i$ is more likely to take the largest value $J$. This motivates the minus sign in the definition of the model since it allows easier interpretation of $\beta$.
 
 - It is called the **proportional odds model** because the relative odds for $y \le j$ comparing $\mathbf{x}_1$ and $\mathbf{x}_2$ are
 $$
