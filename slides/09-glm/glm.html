@@ -1018,6 +1018,12 @@ glm(Species ~ . - Endemics - Island, family = poisson, data = gala) %&gt;%
 </div>
 <div id="robust-estimation" class="section level2">
 <h2>Robust estimation</h2>
+<ul>
+<li>CUBIF (conditionally unbiased inluence function) method bounds the maximum influence each observation can exert.</li>
+</ul>
+<pre class="r"><code>library(robust)
+glmRob(Species ~ log(Area) + log(Adjacent), family = poisson, data = gala) %&gt;%
+  summary()</code></pre>
 </div>
 
 

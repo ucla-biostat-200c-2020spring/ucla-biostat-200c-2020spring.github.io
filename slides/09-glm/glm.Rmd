@@ -437,4 +437,10 @@ Standard errors are closer to those from the overdispersion Poisson model.
 
 ## Robust estimation
 
+- CUBIF (conditionally unbiased inluence function) method bounds the maximum influence each observation can exert.
 
+```{r, eval = F}
+library(robust)
+glmRob(Species ~ log(Area) + log(Adjacent), family = poisson, data = gala) %>%
+  summary()
+```
