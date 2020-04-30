@@ -594,6 +594,9 @@ library(faraway)</code></pre>
 \nabla \ell(\boldsymbol{\beta}) &amp;=&amp; \sum_{i=1}^n \frac{(y_i - \mu_i) \mu_i'(\eta_i)}{\sigma_i^2} \mathbf{x}_i \\
 - \nabla^2 \ell(\boldsymbol{\beta}) &amp;=&amp; \sum_{i=1}^n \frac{[\mu_i'(\eta_i)]^2}{\sigma_i^2} \mathbf{x}_i \mathbf{x}_i^T - \sum_{i=1}^n \frac{(y_i - \mu_i) \theta_i''(\eta_i)}{\phi} \mathbf{x}_i \mathbf{x}_i^T
 \end{eqnarray*}\]</span> <strong>Show this in HW3</strong>. For GLMs with canonical links, we have <span class="math inline">\(\theta_i''(\eta_i)=0\)</span> thus the second term in negative Hessian vanishes. It’s immediate that the negative Hessian is positive semidefinte and Newton’s algorithm with line search is stable.</p></li>
+</ul>
+<p>See Biostat 216 <a href="https://ucla-biostat216-2019fall.github.io/slides/16-matrixcalc/16-matrixcalc.html">lecture notes</a> for a refresher of matrix calculus.</p>
+<ul>
 <li><p>How about non-canonical link? We use the expected (Fisher) information matrix <span class="math display">\[
 \mathbb{E} [- \nabla^2 \ell(\boldsymbol{\beta})] = \sum_{i=1}^n \frac{[\mu_i'(\eta_i)]^2}{\sigma_i^2} \mathbf{x}_i \mathbf{x}_i^T = \mathbf{X}^T \mathbf{W} \mathbf{X} \succeq 0,
 \]</span> where <span class="math inline">\(\mathbf{W} = \text{diag}([\mu_i'(\eta_i)]^2/\sigma_i^2)\)</span>. This modified Newton-Raphson algorithm is called the <strong>Fishering scoring algorithm</strong>.</p></li>
