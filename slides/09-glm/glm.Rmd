@@ -164,6 +164,8 @@ where $s>0$ is a step length, $\nabla \ell$ is the **score (gradient) vector**, 
 \end{eqnarray*}
 **Show this in HW3**. For GLMs with canonical links, we have $\theta_i''(\eta_i)=0$ thus the second term in negative Hessian vanishes. It's immediate that the negative Hessian is positive semidefinte and Newton's algorithm with line search is stable. 
 
+See Biostat 216 [lecture notes](https://ucla-biostat216-2019fall.github.io/slides/16-matrixcalc/16-matrixcalc.html) for a refresher of matrix calculus.
+
 - How about non-canonical link? We use the expected (Fisher) information matrix
 $$
   \mathbb{E} [- \nabla^2 \ell(\boldsymbol{\beta})] = \sum_{i=1}^n \frac{[\mu_i'(\eta_i)]^2}{\sigma_i^2} \mathbf{x}_i \mathbf{x}_i^T = \mathbf{X}^T \mathbf{W} \mathbf{X} \succeq 0,
