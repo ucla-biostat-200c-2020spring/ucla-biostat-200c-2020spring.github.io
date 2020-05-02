@@ -414,12 +414,12 @@ summary {
 ##  [9] knitr_1.28      stringr_1.4.0   xfun_0.13       digest_0.6.25  
 ## [13] rlang_0.4.5     evaluate_0.14</code></pre>
 <pre class="r"><code>library(tidyverse)</code></pre>
-<pre><code>## ── Attaching packages ───────────────────────── tidyverse 1.3.0 ──</code></pre>
+<pre><code>## ── Attaching packages ────────────────────────────────────────────── tidyverse 1.3.0 ──</code></pre>
 <pre><code>## ✓ ggplot2 3.3.0     ✓ purrr   0.3.4
 ## ✓ tibble  3.0.0     ✓ dplyr   0.8.5
 ## ✓ tidyr   1.0.2     ✓ stringr 1.4.0
 ## ✓ readr   1.3.1     ✓ forcats 0.5.0</code></pre>
-<pre><code>## ── Conflicts ──────────────────────────── tidyverse_conflicts() ──
+<pre><code>## ── Conflicts ───────────────────────────────────────────────── tidyverse_conflicts() ──
 ## x dplyr::filter() masks stats::filter()
 ## x dplyr::lag()    masks stats::lag()</code></pre>
 <pre class="r"><code>library(faraway)</code></pre>
@@ -466,7 +466,7 @@ library(faraway)</code></pre>
 <p><code>faraway</code> package contains the datasets in the ELMR book.</p>
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
-<p>Now we have learnt regression modeling of binomial, multinomial, and count responses. How about nonnegative real responses and so on? <strong>Generalized linear model (GLM)</strong> is a generic framework than encompasses normal regression, binomial regression, multinomial regression, and others. There are two essential components of the GLM framework: a <strong>distribution</strong> for response <span class="math inline">\(Y\)</span> and a <strong>link</strong> function that relates mean of <span class="math inline">\(Y\)</span> to covariates <span class="math inline">\(x\)</span>.</p>
+<p>Now we have learnt regression modeling of binomial, multinomial, and count responses. How about nonnegative real responses and so on? <strong>Generalized linear model (GLM)</strong> is a generic framework that encompasses normal regression, binomial regression, multinomial regression, and others. There are two essential components of the GLM framework: a <strong>distribution</strong> for response <span class="math inline">\(Y\)</span> and a <strong>link</strong> function that relates mean of <span class="math inline">\(Y\)</span> to covariates <span class="math inline">\(x\)</span>.</p>
 </div>
 <div id="exponential-family-distribution" class="section level2">
 <h2>Exponential family distribution</h2>
@@ -474,7 +474,7 @@ library(faraway)</code></pre>
 <h3>Definition</h3>
 <p>In GLM, the distribution of <span class="math inline">\(Y\)</span> is from the exponential familty of distributions of form <span class="math display">\[
   f(y \mid \theta, \phi) = \exp \left[ \frac{y \theta - b(\theta)}{a(\phi)} + c(y, \phi) \right].
-\]</span> <span class="math inline">\(\theta\)</span> is called the <strong>canonical parameter</strong> and represents the location while <span class="math inline">\(\phi\)</span> is the <strong>dispersion parameter</strong> and represents the scale. Note the canonical parameter <span class="math inline">\(\theta\)</span> is not necessarily the mean <span class="math inline">\(\mu\)</span>.</p>
+\]</span> <span class="math inline">\(\theta\)</span> is called the <strong>canonical parameter</strong> or <strong>natural parameter</strong> and represents the location while <span class="math inline">\(\phi\)</span> is the <strong>dispersion parameter</strong> and represents the scale. Note the canonical parameter <span class="math inline">\(\theta\)</span> is not necessarily the mean <span class="math inline">\(\mu\)</span>.</p>
 </div>
 <div id="examples" class="section level3">
 <h3>Examples</h3>
@@ -488,16 +488,16 @@ library(faraway)</code></pre>
   b(\theta) &amp;=&amp; \theta^2/2 \\
   c(y, \phi) &amp;=&amp; -\frac 12 (y^2/\phi + \log(2\pi \phi)).
 \end{eqnarray*}\]</span></p></li>
-<li><p>Binomial: <span class="math display">\[\begin{eqnarray*}
-  &amp; &amp; f(y \mid \theta, \phi) = \binom{n}{y} p^y (1 -p)^{n-y} \\
-  &amp;=&amp; \exp \left[ y \log p + (n - y) \log (1 - p) + \log \binom{n}{y} \right] \\
-  &amp;=&amp; \exp \left[ y \log \frac{p}{1 - p} + n \log (1 - p) + \log \binom{n}{y} \right].
+<li><p>Binomial: If we treat <span class="math inline">\(Y\)</span> as a binomial proportion; that is <span class="math inline">\(nY \sim \text{Bin}(n, p)\)</span>, then the density is <span class="math display">\[\begin{eqnarray*}
+  &amp; &amp; f(y \mid \theta, \phi) = \binom{n}{ny} p^{ny} (1 -p)^{n(1-y)} \\
+  &amp;=&amp; \exp \left[ ny \log p + n(1 - y) \log (1 - p) + \log \binom{n}{ny} \right] \\
+  &amp;=&amp; \exp \left[ \frac{y \log \frac{p}{1 - p} + \log (1 - p)}{1/n} + \log \binom{n}{ny} \right].
 \end{eqnarray*}\]</span> So we see <span class="math display">\[\begin{eqnarray*}
   \theta &amp;=&amp; \log \frac{p}{1 - p} \\
   \phi &amp;=&amp; 1 \\
-  a(\phi) &amp;=&amp; 1 \\
-  b(\theta) &amp;=&amp; - n \log (1 - p) = n \log (1 + \exp \theta) \\
-  c(y, \phi) &amp;=&amp; \log \binom{n}{y}.
+  a(\phi) &amp;=&amp; \frac{1}{n} \\
+  b(\theta) &amp;=&amp; - \log (1 - p) = \log (1 + \exp \theta) \\
+  c(y, \phi) &amp;=&amp; \log \binom{n}{ny}.
 \end{eqnarray*}\]</span></p></li>
 <li><p>Poisson: <span class="math display">\[
   f(y \mid \theta, \phi) = e^{-\mu} \frac{\mu^y}{y!} = \exp (y \log \mu - \mu - \log y!).
@@ -566,7 +566,7 @@ library(faraway)</code></pre>
 <td><span class="math inline">\(\mu\)</span></td>
 </tr>
 <tr class="odd">
-<td>Binomial</td>
+<td>Bernoulli</td>
 <td><span class="math inline">\(\eta=\log \left( \frac{\mu}{1 - \mu} \right)\)</span></td>
 <td><span class="math inline">\(\mu (1 - \mu)\)</span></td>
 </tr>
@@ -592,11 +592,12 @@ library(faraway)</code></pre>
 <li><p>For GLM, <span class="math display">\[\begin{eqnarray*}
 \ell(\boldsymbol{\beta}) &amp;=&amp; \sum_{i=1}^n \frac{y_i \theta_i - b(\theta_i)}{a(\phi)} + c(y_i, \phi) \\
 \nabla \ell(\boldsymbol{\beta}) &amp;=&amp; \sum_{i=1}^n \frac{(y_i - \mu_i) \mu_i'(\eta_i)}{\sigma_i^2} \mathbf{x}_i \\
-- \nabla^2 \ell(\boldsymbol{\beta}) &amp;=&amp; \sum_{i=1}^n \frac{[\mu_i'(\eta_i)]^2}{\sigma_i^2} \mathbf{x}_i \mathbf{x}_i^T - \sum_{i=1}^n \frac{(y_i - \mu_i) \theta_i''(\eta_i)}{\phi} \mathbf{x}_i \mathbf{x}_i^T
-\end{eqnarray*}\]</span> <strong>Show this in HW3</strong>. For GLMs with canonical links, we have <span class="math inline">\(\theta_i''(\eta_i)=0\)</span> thus the second term in negative Hessian vanishes. It’s immediate that the negative Hessian is positive semidefinte and Newton’s algorithm with line search is stable.</p></li>
-</ul>
-<p>See Biostat 216 <a href="https://ucla-biostat216-2019fall.github.io/slides/16-matrixcalc/16-matrixcalc.html">lecture notes</a> for a refresher of matrix calculus.</p>
-<ul>
+- \nabla^2 \ell(\boldsymbol{\beta}) &amp;=&amp; \sum_{i=1}^n \frac{[\mu_i'(\eta_i)]^2}{\sigma_i^2} \mathbf{x}_i \mathbf{x}_i^T - \sum_{i=1}^n \frac{(y_i - \mu_i) \mu_i''(\eta_i)}{\sigma_i^2} \mathbf{x}_i \mathbf{x}_i^T \\
+&amp; &amp; + \sum_{i=1}^n \frac{(y_i - \mu_i) [\mu_i'(\eta_i)]^2 (d \sigma_i^{2} / d\mu_i)}{\sigma_i^4} \mathbf{x}_i \mathbf{x}_i^T.
+\end{eqnarray*}\]</span> <strong>Show this in HW3</strong>. For GLMs with canonical links, the second term and third term cancel using the fact <span class="math display">\[
+\frac{d\mu_i}{d \eta_i} = \frac{d\mu_i}{d \theta_i} = \frac{d \, b'(\theta_i)}{d \theta_i} = b''(\theta_i) = \frac{\sigma_i^2}{a(\phi)}.
+\]</span> It’s immediate that the negative Hessian is positive semidefinte and Newton’s algorithm with line search is stable.</p>
+<p>See Biostat 216 <a href="https://ucla-biostat216-2019fall.github.io/slides/16-matrixcalc/16-matrixcalc.html">lecture notes</a> for a refresher of matrix calculus.</p></li>
 <li><p>How about non-canonical link? We use the expected (Fisher) information matrix <span class="math display">\[
 \mathbb{E} [- \nabla^2 \ell(\boldsymbol{\beta})] = \sum_{i=1}^n \frac{[\mu_i'(\eta_i)]^2}{\sigma_i^2} \mathbf{x}_i \mathbf{x}_i^T = \mathbf{X}^T \mathbf{W} \mathbf{X} \succeq 0,
 \]</span> where <span class="math inline">\(\mathbf{W} = \text{diag}([\mu_i'(\eta_i)]^2/\sigma_i^2)\)</span>. This modified Newton-Raphson algorithm is called the <strong>Fishering scoring algorithm</strong>.</p></li>

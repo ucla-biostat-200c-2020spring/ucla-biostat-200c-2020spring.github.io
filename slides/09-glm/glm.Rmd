@@ -35,7 +35,7 @@ library(faraway)
 
 ## Introduction
 
-Now we have learnt regression modeling of binomial, multinomial, and count responses. How about nonnegative real responses and so on? **Generalized linear model (GLM)** is a generic framework than encompasses normal regression, binomial regression, multinomial regression, and others. There are two essential components of the GLM framework: a **distribution** for response $Y$ and a **link** function that relates mean of $Y$ to covariates $x$.
+Now we have learnt regression modeling of binomial, multinomial, and count responses. How about nonnegative real responses and so on? **Generalized linear model (GLM)** is a generic framework that encompasses normal regression, binomial regression, multinomial regression, and others. There are two essential components of the GLM framework: a **distribution** for response $Y$ and a **link** function that relates mean of $Y$ to covariates $x$.
 
 ## Exponential family distribution
 
@@ -45,7 +45,7 @@ In GLM, the distribution of $Y$ is from the exponential familty of distributions
 $$
   f(y \mid \theta, \phi) = \exp \left[ \frac{y \theta - b(\theta)}{a(\phi)} + c(y, \phi) \right].
 $$
-$\theta$ is called the **canonical parameter** and represents the location while $\phi$ is the **dispersion parameter** and represents the scale. Note the canonical parameter $\theta$ is not necessarily the mean $\mu$.  
+$\theta$ is called the **canonical parameter** or **natural parameter** and represents the location while $\phi$ is the **dispersion parameter** and represents the scale. Note the canonical parameter $\theta$ is not necessarily the mean $\mu$.  
 
 ### Examples
 
@@ -62,19 +62,19 @@ So we can write
   c(y, \phi) &=& -\frac 12 (y^2/\phi + \log(2\pi \phi)).
 \end{eqnarray*}
 
-2. Binomial:
+2. Binomial: If we treat $Y$ as a binomial proportion; that is $nY \sim \text{Bin}(n, p)$, then the density is
 \begin{eqnarray*}
-  & & f(y \mid \theta, \phi) = \binom{n}{y} p^y (1 -p)^{n-y} \\
-  &=& \exp \left[ y \log p + (n - y) \log (1 - p) + \log \binom{n}{y} \right] \\
-  &=& \exp \left[ y \log \frac{p}{1 - p} + n \log (1 - p) + \log \binom{n}{y} \right].
+  & & f(y \mid \theta, \phi) = \binom{n}{ny} p^{ny} (1 -p)^{n(1-y)} \\
+  &=& \exp \left[ ny \log p + n(1 - y) \log (1 - p) + \log \binom{n}{ny} \right] \\
+  &=& \exp \left[ \frac{y \log \frac{p}{1 - p} + \log (1 - p)}{1/n} + \log \binom{n}{ny} \right].
 \end{eqnarray*}
 So we see
 \begin{eqnarray*}
   \theta &=& \log \frac{p}{1 - p} \\
   \phi &=& 1 \\
-  a(\phi) &=& 1 \\
-  b(\theta) &=& - n \log (1 - p) = n \log (1 + \exp \theta) \\
-  c(y, \phi) &=& \log \binom{n}{y}.
+  a(\phi) &=& \frac{1}{n} \\
+  b(\theta) &=& - \log (1 - p) = \log (1 + \exp \theta) \\
+  c(y, \phi) &=& \log \binom{n}{ny}.
 \end{eqnarray*}
 
 3. Poisson:
@@ -144,7 +144,7 @@ $$
 |------------------|-------------------------------|-------------------|
 | Normal           | $\eta=\mu$                    | 1                 |
 | Poisson          | $\eta=\log \mu$               | $\mu$             |
-| Binomial         | $\eta=\log \left( \frac{\mu}{1 - \mu} \right)$ | $\mu (1 - \mu)$   |
+| Bernoulli         | $\eta=\log \left( \frac{\mu}{1 - \mu} \right)$ | $\mu (1 - \mu)$   |
 | Gamma            | $\eta = \mu^{-1}$             | $\mu^2$           |
 | Inverse Gaussian | $\eta = \mu^{-2}$             | $\mu^3$           |
 
@@ -160,11 +160,16 @@ where $s>0$ is a step length, $\nabla \ell$ is the **score (gradient) vector**, 
 \begin{eqnarray*}
   \ell(\boldsymbol{\beta}) &=& \sum_{i=1}^n \frac{y_i \theta_i - b(\theta_i)}{a(\phi)} + c(y_i, \phi) \\
   \nabla \ell(\boldsymbol{\beta}) &=& \sum_{i=1}^n \frac{(y_i - \mu_i) \mu_i'(\eta_i)}{\sigma_i^2} \mathbf{x}_i \\
-  - \nabla^2 \ell(\boldsymbol{\beta}) &=& \sum_{i=1}^n \frac{[\mu_i'(\eta_i)]^2}{\sigma_i^2} \mathbf{x}_i \mathbf{x}_i^T - \sum_{i=1}^n \frac{(y_i - \mu_i) \theta_i''(\eta_i)}{\phi} \mathbf{x}_i \mathbf{x}_i^T
+  - \nabla^2 \ell(\boldsymbol{\beta}) &=& \sum_{i=1}^n \frac{[\mu_i'(\eta_i)]^2}{\sigma_i^2} \mathbf{x}_i \mathbf{x}_i^T - \sum_{i=1}^n \frac{(y_i - \mu_i) \mu_i''(\eta_i)}{\sigma_i^2} \mathbf{x}_i \mathbf{x}_i^T \\
+  & & + \sum_{i=1}^n \frac{(y_i - \mu_i) [\mu_i'(\eta_i)]^2 (d \sigma_i^{2} / d\mu_i)}{\sigma_i^4} \mathbf{x}_i \mathbf{x}_i^T.
 \end{eqnarray*}
-**Show this in HW3**. For GLMs with canonical links, we have $\theta_i''(\eta_i)=0$ thus the second term in negative Hessian vanishes. It's immediate that the negative Hessian is positive semidefinte and Newton's algorithm with line search is stable. 
+**Show this in HW3**. For GLMs with canonical links, the second term and third term cancel using the fact
+$$
+\frac{d\mu_i}{d \eta_i} = \frac{d\mu_i}{d \theta_i} = \frac{d \, b'(\theta_i)}{d \theta_i} = b''(\theta_i) = \frac{\sigma_i^2}{a(\phi)}.
+$$
+It's immediate that the negative Hessian is positive semidefinte and Newton's algorithm with line search is stable. 
 
-See Biostat 216 [lecture notes](https://ucla-biostat216-2019fall.github.io/slides/16-matrixcalc/16-matrixcalc.html) for a refresher of matrix calculus.
+    See Biostat 216 [lecture notes](https://ucla-biostat216-2019fall.github.io/slides/16-matrixcalc/16-matrixcalc.html) for a refresher of matrix calculus.
 
 - How about non-canonical link? We use the expected (Fisher) information matrix
 $$
