@@ -167,7 +167,7 @@ where $s>0$ is a step length, $\nabla \ell$ is the **score (gradient) vector**, 
 $$
 \frac{d\mu_i}{d \eta_i} = \frac{d\mu_i}{d \theta_i} = \frac{d \, b'(\theta_i)}{d \theta_i} = b''(\theta_i) = \frac{\sigma_i^2}{a(\phi)}.
 $$
-It's immediate that the negative Hessian is positive semidefinte and Newton's algorithm with line search is stable. 
+Therefore for canonical link the negative Hessian is positive semidefinte and Newton's algorithm with line search is stable. 
 
     See Biostat 216 [lecture notes](https://ucla-biostat216-2019fall.github.io/slides/16-matrixcalc/16-matrixcalc.html) for a refresher of matrix calculus.
 
