@@ -181,7 +181,7 @@ where $\lambda$ and $\theta$ are shape and scale parameters respectively.
 
 ```{r}
 y <- seq(0, 2.5, by = 0.01)
-lambda <- 5 # shape
+lambda <- 0.2 # shape
 theta <- 1 # scale
 phi = exp(-lambda * log(theta))
 wb_df <- tibble(y = y,
@@ -210,7 +210,7 @@ $$
 wb_df %>%
   ggplot() + 
   geom_line(mapping = aes(x = y, y = S)) + 
-  labs(x = "y", y = "f(y)", title = "Survivor functiion of Weibull")
+  labs(x = "y", y = "S(y)", title = "Survivor functiion of Weibull")
 ```
 
 - The hazard function is
@@ -226,7 +226,7 @@ $$
 wb_df %>%
   ggplot() + 
   geom_line(mapping = aes(x = y, y = h)) + 
-  labs(x = "y", y = "f(y)", title = "Hazard functiion of Weibull")
+  labs(x = "y", y = "h(y)", title = "Hazard functiion of Weibull")
 ```
 
 - The cumulative hazard function is 
@@ -351,7 +351,7 @@ So the survival times $y_j$ are included in the model as an offset term $\log y_
 
 - Proportional hazards model is modeled with $\theta = e^{\mathbf{x}^T \boldsymbol{\beta}}$. We have
 $$
-\ell(\boldsymbol{\beta}) = \sum_j (\delta_j \cdot \mathbf{x}^T \boldsymbol{\beta} - y_j e^{\mathbf{x}^T \boldsymbol{\beta}}).
+\ell(\boldsymbol{\beta}) = \sum_j (\delta_j \cdot \mathbf{x}_j^T \boldsymbol{\beta} - y_j e^{\mathbf{x}_j^T \boldsymbol{\beta}}) = \sum_j \left\{ \delta_j \cdot [\mathbf{x}_j^T \boldsymbol{\beta} + \log(y_j)] - y_j e^{\mathbf{x}_j^T \boldsymbol{\beta}} - \delta_j \log(y_j) \right\}.
 $$
 
 ```{r}
@@ -406,9 +406,7 @@ for (iter in 1:10) {
 }
 summary(pmod)
 ```
-Note the inference (standard errors) is for the Poisson model. Correct inference can be obtained from the information matrix of $(\lambda, \boldsymbol{\beta})$.
-
-    **Exercise**: interpret the coefficient $\beta_{\text{treatment}} = -1.73$.
+Note the inference (standard errors) is for the Poisson model. Correct inference can be obtained from the information matrix of $(\lambda, \boldsymbol{\beta})$. **Exercise**: interpret the coefficient $\beta_{\text{treatment}} = -1.73$.
 
 - The `survival` function in R fits a AFT model. The coefficients from an AFT model can be translated to PH model. Details are omitted here (learn that in a surival class.) 
 ```{r}
