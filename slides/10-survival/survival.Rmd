@@ -45,18 +45,18 @@ This lecture notes draw heavily on the Chapter 10 of textbook _An Introduction t
 
 - Let $Y=$ survival time, and $f(y)$ be its density. The probability of failure before a specific time $y$ is given by the cummulative distribution function (cdf)
 $$
-F(y) = \mathbb{P}(Y < y) = \int_0^y f(t) \, dt. 
+F(y) = \mathbb{P}(Y \le y) = \int_0^y f(t) \, dt. 
 $$
 
 - The **survivor function** is the probability of survival beyond time $y$
 $$
-S(y) = \mathbb{P}(Y \ge y) = 1 - F(y).
+S(y) = \mathbb{P}(Y > y) = 1 - F(y).
 $$
 
-- The **hazard function** is the probability of death in an infinitesimal small interval $[y, y + \delta y]$, given surivival up to time $y$
+- The **hazard function** is the probability of death in an infinitesimal small interval $[y, y + \Delta y]$, given surivival up to time $y$
 \begin{eqnarray*}
-h(y) &=& \lim_{\delta y \to 0} \frac{\mathbb{P}(y \le Y \le y + \delta y \mid Y > y)}{\delta y} \\
-&=& \lim_{\delta y \to 0} \frac{F(y + \delta y) - F(y)}{\delta y} \times \frac{1}{S(y)} \\
+h(y) &=& \lim_{\Delta y \to 0} \frac{\mathbb{P}(y < Y \le y + \Delta y \mid Y > y)}{\Delta y} \\
+&=& \lim_{\Delta y \to 0} \frac{F(y + \Delta y) - F(y)}{\Delta y} \times \frac{1}{S(y)} \\
 &=& \frac{f(y)}{S(y)}.
 \end{eqnarray*}
 
@@ -84,6 +84,22 @@ f(y; \theta) = \theta e^{-\theta y}, \quad y \ge 0, \theta > 0
 $$
 and moments $\mathbb{E}Y = \theta^{-1}$, $\operatorname{Var} Y = \theta^{-2}$.
 
+```{r}
+y <- seq(0, 2.5, by = 0.01)
+theta <- 2
+exp_df <- tibble(y = y,
+                 f = dexp(y, theta),
+                 F = pexp(y, theta),
+                 S = 1 - F,
+                 h = theta,
+                 H = theta * y)
+exp_df %>%  
+  ggplot() + 
+  geom_line(mapping = aes(x = y, y = f)) + 
+  labs(x = "y", y = "f(y)", title = "Exponential density")
+```
+
+
 - The cdf of exponential is
 $$
 F(y; \theta) = \int_0^y \theta e^{-\theta t} \, dt = 1 - e^{-\theta y}.
@@ -93,6 +109,12 @@ $$
 $$
 S(y,; \theta) = e^{-\theta y}.
 $$
+```{r}
+exp_df %>%
+  ggplot() + 
+  geom_line(mapping = aes(x = y, y = S)) + 
+  labs(x = "y", y = "S(y)", title = "Survivor function of exponential")
+```
 
 - The hazard function is
 $$
@@ -100,10 +122,24 @@ h(y; \theta) = \frac{f(y; \theta)}{S(y; \theta)} = \theta.
 $$
 The hazard function does not depent on $y$. This **lack of memory** property may be a limitation because in many applications the probability of failure often increases with time.
 
+```{r}
+exp_df %>%
+  ggplot() + 
+  geom_line(mapping = aes(x = y, y = h)) + 
+  labs(x = "y", y = "h(y)", title = "Hazard function of exponential")
+```
+
 - The cumulative hazard function is
 $$
 H(y; \theta) = \theta y.
 $$
+```{r}
+exp_df %>%
+  ggplot() + 
+  geom_line(mapping = aes(x = y, y = H)) + 
+  labs(x = "y", y = "H(y)", title = "Cumulative hazard function of exponential")
+```
+
 
 ### Proportional hazards model
 
@@ -147,8 +183,14 @@ where $\lambda$ and $\theta$ are shape and scale parameters respectively.
 y <- seq(0, 2.5, by = 0.01)
 lambda <- 5 # shape
 theta <- 1 # scale
-tibble(y = y,
-       f = dweibull(y, lambda, theta)) %>%
+phi = exp(-lambda * log(theta))
+wb_df <- tibble(y = y,
+                 f = dweibull(y, lambda, theta),
+                 F = pweibull(y, lambda, theta),
+                 S = 1 - F,
+                 h = lambda * phi * exp((lambda - 1 ) * log(y)),
+                 H = phi * exp(lambda * log(y)))
+wb_df %>%
   ggplot() + 
   geom_line(mapping = aes(x = y, y = f)) + 
   labs(x = "y", y = "f(y)", title = "Weibull density")
@@ -164,17 +206,40 @@ Exponential distribution is a special case of Weibull with $\lambda = 1$.
 $$
 S(y; \lambda, \phi) = \int_y^\infty \lambda \phi u^{\lambda - 1} e^{-\phi u^{\lambda}} \, du = e^{-\phi y^{\lambda}}.
 $$
+```{r}
+wb_df %>%
+  ggplot() + 
+  geom_line(mapping = aes(x = y, y = S)) + 
+  labs(x = "y", y = "f(y)", title = "Survivor functiion of Weibull")
+```
 
 - The hazard function is
 $$
 h(y; \lambda, \phi) = \frac{f(y; \lambda, \phi)}{S(y; \lambda, \phi)} = \lambda \phi y^{\lambda - 1}.
 $$
-The hazard function depends on $y$ and yields **accelerated failure time** models.
+
+    For $\lambda > 1$, the hazard function depends on $y$ and yields **increasing Weibull** or **accelerated failure time** models. Such model might be expected for leukemia patients not responding to treatment, where the event of interest is death. As survival time increases for such a patient, and as the prognosis accordingly worsens, the patient’s potential for dying of the disease also increases.
+
+    For $\lambda < 1$, the hazard function depends on $y$ and yields **decreasing Weibull** models. Such model might be expected when the event is death in persons who are recovering from surgery, because the potential for dying after surgery usually decreases as the time after surgery increases.
+
+```{r}
+wb_df %>%
+  ggplot() + 
+  geom_line(mapping = aes(x = y, y = h)) + 
+  labs(x = "y", y = "f(y)", title = "Hazard functiion of Weibull")
+```
 
 - The cumulative hazard function is 
 $$
 H(y; \lambda, \phi) = \phi y^{\lambda}.
 $$
+
+```{r}
+wb_df %>%
+  ggplot() + 
+  geom_line(mapping = aes(x = y, y = H)) + 
+  labs(x = "y", y = "f(y)", title = "Cummulative hazard functiion of Weibull")
+```
 
 - The mean of Weibull is
 $$
@@ -295,7 +360,7 @@ glm(cens ~ treat + offset(log(time)), family = poisson, data = gehan) %>%
 ```
 
 
-- Check against the standard software in `survival` package. The coefficients have opposite sign because `survreg` links to the mean of exponential which is $\theta^{-1}$.
+- Check against the standard software in `survival` package. The coefficients have opposite sign because `survreg` links to the mean of exponential which is $\theta^{-1}$ according to the accelerated failure time (AFT) model.
 ```{r}
 emod <- survreg(Surv(time, cens) ~ treat, dist = "exponential", data = gehan)
 summary(emod)
@@ -341,8 +406,11 @@ for (iter in 1:10) {
 }
 summary(pmod)
 ```
+Note the inference (standard errors) is for the Poisson model. Correct inference can be obtained from the information matrix of $(\lambda, \boldsymbol{\beta})$.
 
-- Now let's check using the standard software in `survival` package. It's using a different parameterization from ours. 
+    **Exercise**: interpret the coefficient $\beta_{\text{treatment}} = -1.73$.
+
+- The `survival` function in R fits a AFT model. The coefficients from an AFT model can be translated to PH model. Details are omitted here (learn that in a surival class.) 
 ```{r}
 wmod <- survreg(Surv(time, cens) ~ treat, dist = "weibull", data = gehan)
 summary(wmod)
@@ -359,12 +427,8 @@ $$
 So plot of $- \log[\widehat{S}(y)]$ against y should be approximately linear. 
 
 ```{r}
-str(kmfit)
-```
-
-```{r}
 tibble(surv = kmfit$surv,
-        time = kmfit$time) %>%
+       time = kmfit$time) %>%
   ggplot() + 
   geom_point(mapping = aes(x = time, y = - log(surv))) + 
   labs(x = "Event time", y = "-log(Surv. Prob.)")
@@ -386,6 +450,8 @@ tibble(surv = kmfit$surv,
   geom_point(mapping = aes(x = log(time), y = log(- log(surv)))) + 
   labs(x = "log(Event Time)", y = "log[-log(Surv. Prob.)]")
 ```
+
+- If there is some curvi-linear relationship, some other probability models e.g. log-logistic may be better.
 
 ### Check proportional hazard assumption
 
