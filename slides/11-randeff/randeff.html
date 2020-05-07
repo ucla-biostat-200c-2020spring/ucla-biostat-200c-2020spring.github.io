@@ -425,46 +425,6 @@ summary {
 ## x dplyr::lag()    masks stats::lag()</code></pre>
 <pre class="r"><code>library(faraway)</code></pre>
 <p><code>faraway</code> package contains the datasets in the ELMR book.</p>
-<p>Display system information and load <code>tidyverse</code> and <code>faraway</code> packages</p>
-<pre class="r"><code>sessionInfo()</code></pre>
-<pre><code>## R version 3.6.2 (2019-12-12)
-## Platform: x86_64-apple-darwin15.6.0 (64-bit)
-## Running under: macOS Catalina 10.15.4
-## 
-## Matrix products: default
-## BLAS:   /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRblas.0.dylib
-## LAPACK: /Library/Frameworks/R.framework/Versions/3.6/Resources/lib/libRlapack.dylib
-## 
-## locale:
-## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
-## 
-## attached base packages:
-## [1] stats     graphics  grDevices utils     datasets  methods   base     
-## 
-## other attached packages:
-##  [1] faraway_1.0.7   forcats_0.5.0   stringr_1.4.0   dplyr_0.8.5    
-##  [5] purrr_0.3.4     readr_1.3.1     tidyr_1.0.2     tibble_3.0.0   
-##  [9] ggplot2_3.3.0   tidyverse_1.3.0
-## 
-## loaded via a namespace (and not attached):
-##  [1] Rcpp_1.0.4.6     lubridate_1.7.8  lattice_0.20-41  assertthat_0.2.1
-##  [5] digest_0.6.25    R6_2.4.1         cellranger_1.1.0 backports_1.1.6 
-##  [9] reprex_0.3.0     evaluate_0.14    httr_1.4.1       pillar_1.4.3    
-## [13] rlang_0.4.5      readxl_1.3.1     rstudioapi_0.11  minqa_1.2.4     
-## [17] nloptr_1.2.2.1   Matrix_1.2-18    rmarkdown_2.1    splines_3.6.2   
-## [21] lme4_1.1-23      statmod_1.4.34   munsell_0.5.0    broom_0.5.5     
-## [25] compiler_3.6.2   modelr_0.1.6     xfun_0.13        pkgconfig_2.0.3 
-## [29] htmltools_0.4.0  tidyselect_1.0.0 fansi_0.4.1      crayon_1.3.4    
-## [33] dbplyr_1.4.3     withr_2.1.2      MASS_7.3-51.5    grid_3.6.2      
-## [37] nlme_3.1-147     jsonlite_1.6.1   gtable_0.3.0     lifecycle_0.2.0 
-## [41] DBI_1.1.0        magrittr_1.5     scales_1.1.0     cli_2.0.2       
-## [45] stringi_1.4.6    fs_1.4.1         xml2_1.3.1       ellipsis_0.3.0  
-## [49] generics_0.0.2   vctrs_0.2.4      boot_1.3-24      tools_3.6.2     
-## [53] glue_1.4.0       hms_0.5.3        yaml_2.2.1       colorspace_1.4-1
-## [57] rvest_0.3.5      knitr_1.28       haven_2.2.0</code></pre>
-<pre class="r"><code>library(tidyverse)
-library(faraway)</code></pre>
-<p><code>faraway</code> package contains the datasets in the ELMR book.</p>
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
 <ul>
@@ -530,7 +490,7 @@ summary(lmod)</code></pre>
 ## Residual standard error: 0.326 on 16 degrees of freedom
 ## Multiple R-squared:  0.4408, Adjusted R-squared:  0.3359 
 ## F-statistic: 4.204 on 3 and 16 DF,  p-value: 0.02261</code></pre>
-<p>The contrast <code>contr.sum</code> forces the coefficients for 4 operators sum to 0. So the coeffiicient for the fourth operator is 0.28.</p>
+<p>The contrast <code>contr.sum</code> forces the coefficients for 4 operators sum to 0 (when using the dummy/one-hot coding). So the coeffiicient for the 4th operator is 0.28.</p>
 <pre class="r"><code>model.matrix(lmod)</code></pre>
 <pre><code>##    (Intercept) operator1 operator2 operator3
 ## 1            1         1         0         0
@@ -559,19 +519,18 @@ summary(lmod)</code></pre>
 ## attr(,&quot;contrasts&quot;)$operator
 ## [1] &quot;contr.sum&quot;</code></pre>
 <p>The factor <code>operator</code> is significant with p-value 0.023.</p>
-<pre class="r"><code>drop1(lmod, test = &quot;F&quot;)</code></pre>
-<pre><code>## Single term deletions
+<pre class="r"><code>anova(lmod, test = &quot;F&quot;)</code></pre>
+<pre><code>## Analysis of Variance Table
 ## 
-## Model:
-## bright ~ operator
-##          Df Sum of Sq  RSS     AIC F value  Pr(&gt;F)  
-## &lt;none&gt;                1.70 -41.302                  
-## operator  3      1.34 3.04 -35.677  4.2039 0.02261 *
+## Response: bright
+##           Df Sum Sq Mean Sq F value  Pr(&gt;F)  
+## operator   3   1.34 0.44667  4.2039 0.02261 *
+## Residuals 16   1.70 0.10625                  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <ul>
-<li><p>The hypothesis being test in the ANOVA is <em>are these four operators same</em> in terms of the paper brightness they produce. This is called a <strong>fixed effects model</strong> because the effects <span class="math inline">\(\alpha_i\)</span> are assumed to be fixed.</p></li>
-<li>Suppose we are interested in the research question <em>are the population of operators all same</em> based on this data set? We will arrive to a random effects model <span class="math display">\[
+<li><p>The hypothesis being tested in the ANOVA is <em>are these four operators same</em> in terms of the paper brightness they produce. This is called a <strong>fixed effects model</strong> because the effects <span class="math inline">\(\alpha_i\)</span> are assumed to be fixed.</p></li>
+<li>Suppose we are interested in the research question <em>are the population of operators all same</em> based on this data set? We will arrive a random effects model <span class="math display">\[
 y_{ij} = \mu + \alpha_i + \epsilon_{ij}, \quad i = 1,\ldots,4, j = 1,\ldots,5,
 \]</span> where we assume
 <ul>
@@ -581,7 +540,7 @@ y_{ij} = \mu + \alpha_i + \epsilon_{ij}, \quad i = 1,\ldots,4, j = 1,\ldots,5,
 </li>
 <li><span class="math inline">\(\alpha_i\)</span> and <span class="math inline">\(\epsilon_{ij}\)</span> are jointly independent.</li>
 </ul>
-<p>This is called a <strong>random effects</strong> model because now the effects <span class="math inline">\(\alpha_i\)</span> are assumed to be random.</p></li>
+<p>This is called a <strong>random effects model</strong> because now the effects <span class="math inline">\(\alpha_i\)</span> are assumed to be random. The parameters in this random effects model are <span class="math inline">\(\mu\)</span>, <span class="math inline">\(\sigma_\alpha^2\)</span>, and <span class="math inline">\(\sigma_\epsilon^2\)</span>. The latter two are also called the variance component parameters. To test the research hypothesis, we would test <span class="math inline">\(H_0: \sigma_\alpha^2=0\)</span>.</p></li>
 <li>Differences between a fixed effects model and a random effects model.
 <ol style="list-style-type: decimal">
 <li>the interpretation is different,<br />
@@ -596,11 +555,11 @@ y_{ij} = \mu + \alpha_i + \epsilon_{ij}, \quad i = 1,\ldots,4, j = 1,\ldots,5,
 <div id="mixed-effects-model" class="section level2">
 <h2>Mixed effects model</h2>
 <ul>
-<li><p>Traditionally, linear models have been divided into three categories:</p>
+<li><p>Traditionally, linear models can be divided into three categories:</p>
 <ol style="list-style-type: decimal">
 <li><p>Fixed effects model: <span class="math inline">\(\mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \boldsymbol{\epsilon}\)</span>, where <span class="math inline">\(\boldsymbol{\beta}\)</span> is fixed.</p></li>
 <li><p>Random effects model: <span class="math inline">\(\mathbf{y} = \mathbf{Z} \boldsymbol{\gamma} + \boldsymbol{\epsilon}\)</span>, where <span class="math inline">\(\boldsymbol{\gamma}\)</span> is random.</p></li>
-<li><p>Mixed effects model: <span class="math inline">\(\mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \boldsymbol{\gamma} + \boldsymbol{\epsilon}\)</span>, where <span class="math inline">\(\boldsymbol{\beta}\)</span> is fixed and <span class="math inline">\(\boldsymbol{\gamma}\)</span> is random.</p></li>
+<li><p>Mixed effects model or mixed model: <span class="math inline">\(\mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \boldsymbol{\gamma} + \boldsymbol{\epsilon}\)</span>, where <span class="math inline">\(\boldsymbol{\beta}\)</span> is fixed and <span class="math inline">\(\boldsymbol{\gamma}\)</span> is random.</p></li>
 </ol></li>
 <li>In a mixed effects model <span class="math display">\[\begin{eqnarray*}
   \mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \boldsymbol{\gamma} + \boldsymbol{\epsilon}
@@ -614,7 +573,7 @@ y_{ij} = \mu + \alpha_i + \epsilon_{ij}, \quad i = 1,\ldots,4, j = 1,\ldots,5,
 <ul>
 <li>estimation and testing of the fixed effects <span class="math inline">\(\boldsymbol{\beta}\)</span>,<br />
 </li>
-<li>estimation and testing of the variance components, <span class="math inline">\((\sigma^2, \sigma_1^2, \ldots, \sigma_m^2)\)</span>, and<br />
+<li>estimation and testing of the variance component parameters, and<br />
 </li>
 <li>prediction.</li>
 </ul></li>
@@ -623,16 +582,16 @@ y_{ij} = \mu + \alpha_i + \epsilon_{ij}, \quad i = 1,\ldots,4, j = 1,\ldots,5,
 <div id="example-one-way-anova" class="section level2">
 <h2>Example: one-way ANOVA</h2>
 <ul>
-<li><p>For the one-way ANOVA random effects model <span class="math display">\[
-y_{ij} = \mu + \alpha_i + \epsilon_{ij}, \quad i=1,\ldots,a
+<li><p>For the one-way ANOVA random effects model with <span class="math inline">\(a\)</span> levels and <span class="math inline">\(n_i\)</span> observations in level <span class="math inline">\(i\)</span>, <span class="math display">\[
+y_{ij} = \mu + \alpha_i + \epsilon_{ij}, \quad i=1,\ldots,a,
 \]</span> we recognize it as a mixed effects model <span class="math display">\[\begin{eqnarray*}
-\mathbf{y} = \mathbf{1}_n \beta_0 + \begin{pmatrix}
+\mathbf{y} = \mathbf{1}_n \mu + \begin{pmatrix}
 \mathbf{1}_{n_1} &amp; &amp; \\
 &amp; \vdots &amp; \\
 &amp; &amp; \mathbf{1}_{n_a}
 \end{pmatrix} \boldsymbol{\gamma} + \boldsymbol{\epsilon},
-\end{eqnarray*}\]</span> where <span class="math inline">\(\boldsymbol{\gamma} \sim N(\mathbf{0}_a, \sigma_{\alpha}^2 \mathbf{I}_a)\)</span> and <span class="math inline">\(\boldsymbol{\epsilon} \sim N(\mathbf{0}_{\sum_i n_i}, \sigma_{\epsilon}^2 \mathbf{I})\)</span> are independent. <span class="math inline">\(n_i\)</span> are number of observations in level <span class="math inline">\(i\)</span>.</p></li>
-<li><p>How do we estimate parameters <span class="math inline">\(\beta_0\)</span>, <span class="math inline">\(\sigma_{\alpha}^2\)</span>, and <span class="math inline">\(\sigma_{\epsilon}^2\)</span>?</p></li>
+\end{eqnarray*}\]</span> where <span class="math inline">\(\boldsymbol{\gamma} \sim N(\mathbf{0}_a, \sigma_{\alpha}^2 \mathbf{I}_a)\)</span> and <span class="math inline">\(\boldsymbol{\epsilon} \sim N(\mathbf{0}_{\sum_i n_i}, \sigma_{\epsilon}^2 \mathbf{I})\)</span> are independent. Note in <span class="math inline">\(\mathbf{Z}\)</span> use have one column for each level.</p></li>
+<li><p>How do we estimate parameters <span class="math inline">\(\mu\)</span>, <span class="math inline">\(\sigma_{\alpha}^2\)</span>, and <span class="math inline">\(\sigma_{\epsilon}^2\)</span>?</p></li>
 </ul>
 </div>
 <div id="estimation" class="section level2">
@@ -660,7 +619,6 @@ y_{ij} = \mu + \alpha_i + \epsilon_{ij}, \quad i=1,\ldots,a
 ## Residuals   16   1.70  0.1062                 
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
-<p>We estimate <span class="math inline">\(\sigma_{\alpha}^2\)</span> by</p>
 <pre class="r"><code>str(aovmod)</code></pre>
 <pre><code>## List of 1
 ##  $ :Classes 'anova' and 'data.frame':    2 obs. of  5 variables:
@@ -670,8 +628,12 @@ y_{ij} = \mu + \alpha_i + \epsilon_{ij}, \quad i=1,\ldots,a
 ##   ..$ F value: num [1:2] 4.2 NA
 ##   ..$ Pr(&gt;F) : num [1:2] 0.0226 NA
 ##  - attr(*, &quot;class&quot;)= chr [1:2] &quot;summary.aov&quot; &quot;listof&quot;</code></pre>
+<p>We estimate <span class="math inline">\(\sigma_{\alpha}^2\)</span> by</p>
 <pre class="r"><code>(aovmod[1][[1]][[3]][1] - aovmod[1][[1]][[3]][2]) / 5</code></pre>
 <pre><code>## [1] 0.06808333</code></pre>
+<p>and <span class="math inline">\(\sigma_{\epsilon}^2\)</span> by</p>
+<pre class="r"><code>aovmod[1][[1]][[3]][2]</code></pre>
+<pre><code>## [1] 0.10625</code></pre>
 <ul>
 <li>Drawbacks of ANOVA estimators.
 <ol style="list-style-type: decimal">
@@ -685,8 +647,8 @@ y_{ij} = \mu + \alpha_i + \epsilon_{ij}, \quad i=1,\ldots,a
 <h3>Maximum likelihood estimation (MLE)</h3>
 <ul>
 <li>For the mixed effects model <span class="math display">\[\begin{eqnarray*}
-  \mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \boldsymbol{\gamma} + \boldsymbol{\epsilon}.
-\end{eqnarray*}\]</span> We have <span class="math display">\[
+  \mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \boldsymbol{\gamma} + \boldsymbol{\epsilon},
+\end{eqnarray*}\]</span> where <span class="math inline">\(\boldsymbol{\epsilon} \sim N(\mathbf{0}_n, \sigma^2 \mathbf{I})\)</span> and <span class="math inline">\(\boldsymbol{\gamma} \sim N(\mathbf{0}_q, \boldsymbol{\Sigma})\)</span> are independent of each other, we have <span class="math display">\[
 \mathbf{Y} \sim N(\mathbf{X} \boldsymbol{\beta}, \mathbf{Z} \boldsymbol{\Sigma} \mathbf{Z}^T + \sigma^2 \mathbf{I}).
 \]</span> So the likelihood is <span class="math display">\[
 \frac{1}{(2\pi)^{n/2} \det(\mathbf{Z} \boldsymbol{\Sigma} \mathbf{Z}^T + \sigma^2 \mathbf{I})^{1/2}} e^{- \frac 12 (\mathbf{y} - \mathbf{X} \boldsymbol{\beta})^T (\mathbf{Z} \boldsymbol{\Sigma} \mathbf{Z}^T + \sigma^2 \mathbf{I})^{-1} (\mathbf{y} - \mathbf{X} \boldsymbol{\beta})}
@@ -700,16 +662,11 @@ y_{ij} = \mu + \alpha_i + \epsilon_{ij}, \quad i=1,\ldots,a
 \]</span> where an unbiased estimator is <span class="math display">\[
 \widehat{\sigma}^2 = \frac{\text{RSS}}{n-p},
 \]</span> where <span class="math inline">\(p\)</span> is the number of parameters.</p></li>
-<li><p>Let’s find the MLE for the <code>pulp</code> data using <code>lme4</code> package. The syntax <code>(1 | operator)</code> instructs that the data is grouped by <code>operator</code> and the <code>1</code> indicates that random effect is constant within each group.</p></li>
+<li><p>Let’s find the MLE for the <code>pulp</code> data using <code>lme4</code> package. The syntax <code>(1 | operator)</code> instructs that the data is grouped by <code>operator</code> and the <code>1</code> indicates that random effect is constant within each group. The default method is REML so we set <code>REML = FALSE</code> to compute the MLE instead.</p></li>
 </ul>
-<pre class="r"><code>library(lme4)</code></pre>
-<pre><code>## Loading required package: Matrix</code></pre>
-<pre><code>## 
-## Attaching package: 'Matrix'</code></pre>
-<pre><code>## The following objects are masked from 'package:tidyr':
-## 
-##     expand, pack, unpack</code></pre>
-<pre class="r"><code>smod &lt;- lmer(bright ~ 1 + (1 | operator), data = pulp, REML = FALSE)
+<pre class="r"><code>library(lme4)
+
+smod &lt;- lmer(bright ~ 1 + (1 | operator), data = pulp, REML = FALSE)
 summary(smod)</code></pre>
 <pre><code>## Linear mixed model fit by maximum likelihood  ['lmerMod']
 ## Formula: bright ~ 1 + (1 | operator)
@@ -736,10 +693,10 @@ summary(smod)</code></pre>
 <h3>Restricted MLE (REML)</h3>
 <ul>
 <li><p>The restricted maximum likelihood (REML) method tries to reduce the bias in variance component estimates.</p></li>
-<li><p>Let <span class="math inline">\(\mathbf{K} \in \mathbb{R}^{n-p}\)</span> be any basis of the space <span class="math inline">\({\cal N}(\mathbf{X}^T)\)</span>. Then <span class="math display">\[
+<li><p>Assume <span class="math inline">\(\mathbf{X}\)</span> has full column rank <span class="math inline">\(p\)</span>. Let <span class="math inline">\(\mathbf{K} \in \mathbb{R}^{n-p}\)</span> be any basis of the space <span class="math inline">\({\cal N}(\mathbf{X}^T)\)</span>, which is orthogonal to <span class="math inline">\({\cal C}(\mathbf{X})\)</span>. Then <span class="math display">\[
 \mathbf{K}^T \mathbf{Y} \sim N(\mathbf{0}_{n-p}, \mathbf{K}^T (\mathbf{Z} \boldsymbol{\Sigma} \mathbf{Z}^T + \sigma^2 \mathbf{I}) \mathbf{K}).
-\]</span> We estimate variance component parameters <span class="math inline">\((\sigma^2, \boldsymbol{\Sigma})\)</span> by MLE using this transformed data. Then we estimate fixed effects <span class="math inline">\(\boldsymbol{\beta}\)</span> using general least squares.</p></li>
-<li><p>Let’s find the REML for the <code>pulp</code> data.</p></li>
+\]</span> We estimate variance component parameters <span class="math inline">\((\sigma^2, \boldsymbol{\Sigma})\)</span> by MLE using this transformed data <span class="math inline">\((\mathbf{K}^T \mathbf{y}, \mathbf{K}^T \mathbf{Z})\)</span>. Then we estimate fixed effects <span class="math inline">\(\boldsymbol{\beta}\)</span> using general least squares. We can show that the REML estimate does not depend on the choice of <span class="math inline">\(\mathbf{K}\)</span>.</p></li>
+<li><p>Let’s find the REML for the <code>pulp</code> data using <code>lme4</code>.</p></li>
 </ul>
 <pre class="r"><code>library(lme4)
 
@@ -770,7 +727,7 @@ summary(mmod)</code></pre>
 <div id="inference" class="section level2">
 <h2>Inference</h2>
 <ul>
-<li><p>If we compare two nested models that differ only in fixed effects, we can use the standard likelihood ratio test (LRT). Remember we cannot use REML estimates for LRT.</p>
+<li><p>If we compare two nested models that differ only in fixed effects, we can use the standard likelihood ratio test (LRT). Remember we have to use REML estimates for LRT.</p>
 <p>F tests for fixed effects can fail. What degrees of freedom to use?</p></li>
 <li><p>Testing the variance component parameters, e.g., <span class="math inline">\(H_0:\sigma_{\alpha}^2=0\)</span>, can be hard too. Traditional method like LRT can be wrong. E.g., for the <code>pulp</code> data, LRT using the the conventional <span class="math inline">\(\chi_1^2\)</span> null distribution gives a non-significant p-value.</p></li>
 </ul>
@@ -783,11 +740,11 @@ pchisq(lrtstat, 1, lower.tail = FALSE)</code></pre>
 <div id="parametric-bootstrap" class="section level3">
 <h3>Parametric bootstrap</h3>
 <ul>
-<li>The idea of parameteric bootstrap is we generate new <span class="math inline">\(y\)</span> from the fitted null model many times. For each simulation replicate, we carry out the LRT. Then the p-value is estimated by the proportion of simulation replicates that generate LRT test statistic larger than the observed one <span class="math inline">\(2.5684\)</span>.</li>
+<li>The idea of parameteric bootstrap is we generate new <span class="math inline">\(y\)</span> from the fitted null model many times. For each simulation replicate, we calculate the LRT statistic. Then the p-value is estimated by the proportion of simulation replicates that generate LRT statistics larger than the observed one <span class="math inline">\(2.5684\)</span>.</li>
 </ul>
 <pre class="r"><code>B &lt;- 1000
 lrstat &lt;- numeric(B)
-set.seed(123)
+set.seed(123) # for reproducibility
 for (i in 1:B) {
   y &lt;- unlist(simulate(nullmod))
   bnull &lt;- lm(y ~ 1)
@@ -1496,23 +1453,27 @@ for (i in 1:B) {
 ## boundary (singular) fit: see ?isSingular
 ## boundary (singular) fit: see ?isSingular</code></pre>
 <pre class="r"><code># parametric bootstrap p-value
-mean(lrstat &gt; 2.5684)</code></pre>
-<pre><code>## [1] 0.019</code></pre>
+pval &lt;- mean(lrstat &gt; 2.5684)</code></pre>
+<p>The standard error of the p-value is</p>
+<pre class="r"><code>sqrt(pval * (1 - pval) / B)</code></pre>
+<pre><code>## [1] 0.004317291</code></pre>
 <ul>
 <li>Advantages of parametric boostrap:
 <ul>
 <li>It’s not restricted to MLE estimators. It applies to any other estimators.<br />
 </li>
-<li>It does not rely on the dubious asymptotic <span class="math inline">\(\chi_2\)</span> distribution.<br />
+<li>It does not rely on the dubious asymptotic <span class="math inline">\(\chi^2\)</span> distribution.<br />
 </li>
-<li>It can be used to generate confidence intervals.</li>
+<li>It can be used to generate confidence intervals.<br />
+</li>
+<li>It applies to inference of both <span class="math inline">\(\boldsymbol{\beta}\)</span> and variance component parameters.</li>
 </ul></li>
 <li>Drawbacks of parametric bootstrap: computationally intensive.</li>
 </ul>
 </div>
 <div id="exact-lrt-and-rlrt-test" class="section level3">
 <h3>Exact LRT and RLRT test</h3>
-<p>Another simulation based method.</p>
+<p>Another simulation based method is provided by the <code>RLRsim</code> package.</p>
 <pre class="r"><code>library(RLRsim)
 
 exactLRT(smod, nullmod)</code></pre>
@@ -1538,20 +1499,20 @@ exactLRT(smod, nullmod)</code></pre>
 <ul>
 <li><p>Consider the mixed effects model <span class="math display">\[
 \begin{eqnarray*}
-  \mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \boldsymbol{\gamma} + \boldsymbol{\epsilon}
+  \mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \boldsymbol{\gamma} + \boldsymbol{\epsilon},
 \end{eqnarray*}
-\]</span> The random effects <span class="math inline">\(\boldsymbol{\gamma}\)</span> are random variables. It does not make sense to estimate <span class="math inline">\(\boldsymbol{\gamma}\)</span>.</p></li>
-<li><p>However, if we can take Bayesian point of view. We have a <strong>likelihood</strong> <span class="math display">\[
-\mathbf{y} \mid \boldsymbol{\gamma} \sim N(\mathbf{X} \boldsymbol{\beta}, \sigma^2 \mathbf{I}_n)
+\]</span> where <span class="math inline">\(\boldsymbol{\epsilon} \sim N(\mathbf{0}_n, \sigma^2 \mathbf{I})\)</span> and <span class="math inline">\(\boldsymbol{\gamma} \sim N(\mathbf{0}_q, \boldsymbol{\Sigma})\)</span> are independent of each other. The random effects <span class="math inline">\(\boldsymbol{\gamma}\)</span> are random variables. It does not make sense to estimate <span class="math inline">\(\boldsymbol{\gamma}\)</span>.</p></li>
+<li><p>However, if we take the Bayesian point of view, we can estimate it by posterior mean. We have a <strong>likelihood</strong> <span class="math display">\[
+\mathbf{y} \mid \boldsymbol{\gamma} \sim N(\mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \boldsymbol{\gamma}, \sigma^2 \mathbf{I}_n)
 \]</span> and a <strong>prior distribution</strong> <span class="math display">\[
-\boldsymbol{\gamma} \sim N(\mathbf{0}_a, \boldsymbol{\Sigma}).
+\boldsymbol{\gamma} \sim N(\mathbf{0}_q, \boldsymbol{\Sigma}).
 \]</span> Then by the Bayes theorem, the <strong>posterior distribution</strong> is <span class="math display">\[\begin{eqnarray*}
 f(\boldsymbol{\gamma} \mid \mathbf{y}) &amp;=&amp; \frac{f(\mathbf{y} \mid \boldsymbol{\gamma}) \times f(\boldsymbol{\gamma})}{f(\mathbf{y})} \\
 &amp;=&amp; ...
 \end{eqnarray*}\]</span> is a multivariate normal with mean (show in <strong>HW4</strong>) <span class="math display">\[
 \mathbb{E} (\boldsymbol{\gamma} \mid \mathbf{y}) = \boldsymbol{\Sigma} \mathbf{Z} (\mathbf{Z} \boldsymbol{\Sigma} \mathbf{Z}^T + \sigma^2 \mathbf{I})^{-1} (\mathbf{y} - \mathbf{X} \boldsymbol{\beta}).
 \]</span></p></li>
-<li><p>We can use this posterior mean to restimate random effects. For the <code>pulp</code> data</p></li>
+<li><p>We can use this posterior mean to restimate random effects. For the <code>pulp</code> data, estimte of random effects are obtained by</p></li>
 </ul>
 <pre class="r"><code>ranef(mmod)$operator</code></pre>
 <pre><code>##   (Intercept)
@@ -1574,7 +1535,7 @@ f(\boldsymbol{\gamma} \mid \mathbf{y}) &amp;=&amp; \frac{f(\mathbf{y} \mid \bold
 ## b    1.312117
 ## c    1.312117
 ## d    1.312117</code></pre>
-<p>That’s why Bayesian estimates are often called the shrinkage estimator.</p>
+<p>That’s why Bayesian estimates are often called the shrinkage estimator. <strong>Exercise:</strong> prove this in HW4 for the balanced one-way ANOVA example.</p>
 </div>
 <div id="prediction" class="section level2">
 <h2>Prediction</h2>
@@ -1604,7 +1565,7 @@ f(\boldsymbol{\gamma} \mid \mathbf{y}) &amp;=&amp; \frac{f(\mathbf{y} \mid \bold
 <h2>Blocks as random effects</h2>
 <ul>
 <li><p>In the <code>pulp</code> example, <code>operator</code> defines blocks.</p></li>
-<li><p>In the <code>penicillin</code> data set, we want to study how <code>yield</code> depends on the <code>treat</code> (proccess) and <code>blend</code> (corn steep liquor).</p></li>
+<li><p>In the <code>penicillin</code> data set, we want to study how <code>yield</code> depends on the <code>treat</code> (proccess) and <code>blend</code> (corn steep liquor). It is natural to treat <code>treat</code> as fixed effects and <code>blend</code> as a blocking variable (random effects).</p></li>
 </ul>
 <pre class="r"><code>penicillin</code></pre>
 <pre><code>##    treat  blend yield
@@ -1665,7 +1626,7 @@ summary(mmod)</code></pre>
 ## Formula: yield ~ treat + (1 | blend)
 ##    Data: penicillin
 ## 
-## REML criterion at convergence: 103.8
+## REML criterion at convergence: 106.6
 ## 
 ## Scaled residuals: 
 ##     Min      1Q  Median      3Q     Max 
@@ -1679,16 +1640,16 @@ summary(mmod)</code></pre>
 ## 
 ## Fixed effects:
 ##             Estimate Std. Error t value
-## (Intercept)   84.000      2.475  33.941
-## treatB         1.000      2.745   0.364
-## treatC         5.000      2.745   1.822
-## treatD         2.000      2.745   0.729
+## (Intercept)   86.000      1.817  47.341
+## treat1        -2.000      1.681  -1.190
+## treat2        -1.000      1.681  -0.595
+## treat3         3.000      1.681   1.785
 ## 
 ## Correlation of Fixed Effects:
-##        (Intr) treatB treatC
-## treatB -0.555              
-## treatC -0.555  0.500       
-## treatD -0.555  0.500  0.500</code></pre>
+##        (Intr) treat1 treat2
+## treat1  0.000              
+## treat2  0.000 -0.333       
+## treat3  0.000 -0.333 -0.333</code></pre>
 <pre class="r"><code>options(op)</code></pre>
 <p>Random effect estimates are shrunken version of fixed effect estimates.</p>
 <pre class="r"><code>ranef(mmod)$blend</code></pre>
@@ -1715,20 +1676,29 @@ summary(amod)</code></pre>
 ## treat      3     70   23.33   1.239  0.339
 ## Residuals 12    226   18.83</code></pre>
 <ul>
-<li>The F test also applies to this balanced case.</li>
+<li>The F test also applies to this balanced case, but cannot be generalized to more complicated cases.</li>
 </ul>
 <pre class="r"><code>anova(mmod)</code></pre>
 <pre><code>## Analysis of Variance Table
 ##       npar Sum Sq Mean Sq F value
 ## treat    3     70  23.333  1.2389</code></pre>
+<p>More reliable F-tests can be achieved using adjusted degrees of freedom.</p>
+<pre class="r"><code>library(pbkrtest)
+
+amod &lt;- lmer(yield ~ treat + (1 | blend), data = penicillin, REML = FALSE)
+nmod &lt;- lmer(yield ~ 1 + (1 | blend), penicillin, REML = FALSE)
+KRmodcomp(amod, nmod)</code></pre>
+<pre><code>## F-test with Kenward-Roger approximation; time: 0.13 sec
+## large : yield ~ treat + (1 | blend)
+## small : yield ~ 1 + (1 | blend)
+##          stat     ndf     ddf F.scaling p.value
+## Ftest  1.2389  3.0000 12.0000         1  0.3387</code></pre>
 <ul>
 <li>Parametric bootstrap. We observed LRT statistic</li>
 </ul>
-<pre class="r"><code>amod &lt;- lmer(yield ~ treat + (1 | blend), data = penicillin, REML = FALSE)
-nmod &lt;- lmer(yield ~ 1 + (1 | blend), data = penicillin, REML = FALSE)
-as.numeric(2 * (logLik(amod) - logLik(nmod)))</code></pre>
+<pre class="r"><code>as.numeric(2 * (logLik(amod) - logLik(nmod)))</code></pre>
 <pre><code>## [1] 4.047367</code></pre>
-<p>The dubious <span class="math inline">\(\chi_3\)</span> approximation gives p-value</p>
+<p>The <span class="math inline">\(\chi_3\)</span> approximation gives p-value</p>
 <pre class="r"><code>pchisq(4.0474, 3, lower.tail = FALSE)</code></pre>
 <pre><code>## [1] 0.2563911</code></pre>
 <p>Now we use parametric bootstrap</p>
@@ -2145,7 +2115,7 @@ mean(lrstat &gt; 4.0474)</code></pre>
 set.seed(123)
 pmod &lt;- PBmodcomp(amod, nmod)
 summary(pmod)</code></pre>
-<pre><code>## Bootstrap test; time: 18.22 sec;samples: 1000; extremes: 353;
+<pre><code>## Bootstrap test; time: 16.14 sec;samples: 1000; extremes: 353;
 ## large : yield ~ treat + (1 | blend)
 ## small : yield ~ 1 + (1 | blend)
 ##            stat     df    ddf p.value
@@ -2160,10 +2130,10 @@ summary(pmod)</code></pre>
 <ul>
 <li>Let’s test the <code>blend</code> random effects by parametric bootstrap. First calculate LRT statistic.</li>
 </ul>
-<pre class="r"><code>rmod &lt;- lmer(yield ~ treat + (1 | blend), data = penicillin)
+<pre class="r"><code>rmod &lt;- lmer(yield ~ treat + (1 | blend), data = penicillin, REML = FALSE)
 nlmod &lt;- lm(yield ~ treat, data = penicillin)
-as.numeric(2 * (logLik(rmod) - logLik(nlmod, REML = TRUE)))</code></pre>
-<pre><code>## [1] 2.762908</code></pre>
+as.numeric(2 * (logLik(rmod) - logLik(nlmod)))</code></pre>
+<pre><code>## [1] 3.453634</code></pre>
 <p>Parametric boostrap:</p>
 <pre class="r"><code>B &lt;- 1000
 lrstatf &lt;- numeric(B)
@@ -2171,7 +2141,7 @@ for (i in 1:B) {
   ryield &lt;- unlist(simulate(nlmod))  
   nlmodr &lt;- lm(ryield ~ treat, data = penicillin)
   rmodr &lt;- refit(rmod, ryield)
-  lrstatf[i] &lt;- 2 * (logLik(rmod) - logLik(nlmod, REML = TRUE))
+  lrstatf[i] &lt;- 2 * (logLik(rmodr) - logLik(nlmodr))
 }</code></pre>
 <pre><code>## boundary (singular) fit: see ?isSingular
 ## boundary (singular) fit: see ?isSingular
@@ -2606,9 +2576,110 @@ for (i in 1:B) {
 ## boundary (singular) fit: see ?isSingular
 ## boundary (singular) fit: see ?isSingular
 ## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
+## boundary (singular) fit: see ?isSingular
 ## boundary (singular) fit: see ?isSingular</code></pre>
-<pre class="r"><code>mean(lrstatf &gt; 2.7629)</code></pre>
-<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>mean(lrstatf &gt; 3.453634)</code></pre>
+<pre><code>## [1] 0.046</code></pre>
 <ul>
 <li>The exact LRT simulation method.</li>
 </ul>
