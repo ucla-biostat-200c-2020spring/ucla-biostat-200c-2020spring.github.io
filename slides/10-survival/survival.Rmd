@@ -23,7 +23,7 @@ library(tidyverse)
 knitr::opts_chunk$set(fig.align = 'center', cache = FALSE)
 ```
 
-This lecture notes draw heavily on the Chapter 10 of textbook _An Introduction to Generalized Linear Models_ by Dobson and Barnett (2nd or 3rd edition). [ULCA library link to the 2nd edition](https://ucla.on.worldcat.org/oclc/317751780).
+This lecture note draws heavily on the Chapter 10 of textbook _An Introduction to Generalized Linear Models_ by Dobson and Barnett (2nd or 3rd edition). [ULCA library link to the 2nd edition](https://ucla.on.worldcat.org/oclc/317751780).
 
 ## Introduction
 
@@ -181,7 +181,7 @@ where $\lambda$ and $\theta$ are shape and scale parameters respectively.
 
 ```{r}
 y <- seq(0, 2.5, by = 0.01)
-lambda <- 0.2 # shape
+lambda <- 5 # shape
 theta <- 1 # scale
 phi = exp(-lambda * log(theta))
 wb_df <- tibble(y = y,
@@ -268,15 +268,15 @@ which is a proportional hazards model.
 
 - The empirical survivor function, an estimate of the probability of survival beyond time $y$, is
 $$
-\widehat{S}(y) = \widehat{\mathbb{P}}(Y \ge y).
+\widehat{S}(y) = \widehat{\mathbb{P}}(Y > y).
 $$
 - Arrange the even times $y_{(1)} \le y_{(2)} \le \cdots \le y_{(k)}$.  **Kaplan-Meier formula** or **product limit formula**
 \begin{eqnarray*}
-\widehat{S}(y_{k}) &=& \widehat{\mathbb{P}}(Y \ge y_{(k)}) \\
-&=& \widehat{\mathbb{P}}(Y \ge y_{(k-1)}) \times \widehat{\mathbb{P}}(Y > y_{(k)} \mid Y \ge y_{(k-1)}) \\
-&=& \widehat{S}(y_{k-1}) \times \widehat{\mathbb{P}}(Y > y_{(k)} \mid Y \ge y_{(k-1)}) \\
+\widehat{S}(y_{k}) &=& \widehat{\mathbb{P}}(Y > y_{(k)}) \\
+&=& \widehat{\mathbb{P}}(Y > y_{(k-1)}) \times \widehat{\mathbb{P}}(Y > y_{(k)} \mid Y > y_{(k-1)}) \\
+&=& \widehat{S}(y_{k-1}) \times \widehat{\mathbb{P}}(Y > y_{(k)} \mid Y > y_{(k-1)}) \\
 &=& \cdots \\
-&=& \prod_{j=1}^k \widehat{\mathbb{P}}(Y > y_{(j)} \mid Y \ge y_{(j-1)}) \\
+&=& \prod_{j=1}^k \widehat{\mathbb{P}}(Y > y_{(j)} \mid Y > y_{(j-1)}) \\
 &=& \prod_{j=1}^k \left( \frac{n_j - d_j}{n_j} \right),
 \end{eqnarray*}
 where
@@ -369,9 +369,11 @@ summary(emod)
 ### Weibull model
 
 - With link function $\phi = \alpha e^{\mathbf{x}^T \boldsymbol{\beta}}$, the log-likelihood of Weibull model is
-$$
-\ell(\boldsymbol{\beta}) = \sum_j [\delta_j \log h(y_j) + \log S(y_j)]  = \sum_{j=1}^n [\delta_j \log (\lambda \alpha y_j^{\lambda - 1} e^{\mathbf{x}^T \boldsymbol{\beta}}) - \alpha y_j^{\lambda} e^{\mathbf{x}^T \boldsymbol{\beta}}].
-$$
+\begin{eqnarray*}
+\ell(\boldsymbol{\beta}) &=& \sum_j [\delta_j \log h(y_j) + \log S(y_j)] \\
+&=& \sum_{j=1}^n [\delta_j \log (\lambda \alpha y_j^{\lambda - 1} e^{\mathbf{x}^T \boldsymbol{\beta}}) - \alpha y_j^{\lambda} e^{\mathbf{x}^T \boldsymbol{\beta}}] \\
+&=& \sum_{j=1}^n [\delta_j \log (\lambda \alpha y_j^{\lambda} e^{\mathbf{x}^T \boldsymbol{\beta}}) - \alpha y_j^{\lambda} e^{\mathbf{x}^T \boldsymbol{\beta}} - \delta_j \log y_j].
+\end{eqnarray*}
 Again this is almost the log-likelihood if we pretend $\delta_j$ are independent Poisson$(\mu_j)$ where $\mu_j = \alpha y_j^{\lambda} e^{\mathbf{x}^T \boldsymbol{\beta}}$. 
 
 - The log link gives
@@ -454,9 +456,9 @@ tibble(surv = kmfit$surv,
 ### Check proportional hazard assumption
 
 - For proportional hazards model
-$$
+\begin{eqnarray*}
 h(y) = h_0(y) e^{\mathbf{x}^T \boldsymbol{\beta}}.
-$$
+\end{eqnarray*}
 Consider a binary predictor $x_k \in \{0,1\}$, then
 $$
 \log H_1 = \log H_0 + \beta_k.
