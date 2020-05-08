@@ -343,11 +343,7 @@ $$
 $$
 \ell(\boldsymbol{\theta}) = \sum_j [\delta_j \log h(y_j) + \log S(y_j)] = \sum_j (\delta_j \log \theta_j - \theta_j y_j).
 $$
-The right hand side resembles the log-likelihood if treating $\delta_j$ as Poisson$(\mu_j)$ where $\mu_j = \theta_j y_j$. If we use the log link, then
-$$
-\log \mu_j = \log \theta_j + \log y_j.
-$$
-So the survival times $y_j$ are included in the model as an offset term $\log y_j$.
+The right hand side resembles the log-likelihood if treating $\delta_j$ as Poisson$(\mu_j)$ where $\mu_j = \theta_j y_j$. Only the survival times $y_j$ are included in the model as an offset term $\log y_j$.
 
 - Proportional hazards model is modeled with $\theta = e^{\mathbf{x}^T \boldsymbol{\beta}}$. We have
 $$
@@ -370,23 +366,18 @@ summary(emod)
 
 - With link function $\phi = \alpha e^{\mathbf{x}^T \boldsymbol{\beta}}$, the log-likelihood of Weibull model is
 \begin{eqnarray*}
-\ell(\boldsymbol{\beta}) &=& \sum_j [\delta_j \log h(y_j) + \log S(y_j)] \\
-&=& \sum_{j=1}^n [\delta_j \log (\lambda \alpha y_j^{\lambda - 1} e^{\mathbf{x}^T \boldsymbol{\beta}}) - \alpha y_j^{\lambda} e^{\mathbf{x}^T \boldsymbol{\beta}}] \\
-&=& \sum_{j=1}^n [\delta_j \log (\lambda \alpha y_j^{\lambda} e^{\mathbf{x}^T \boldsymbol{\beta}}) - \alpha y_j^{\lambda} e^{\mathbf{x}^T \boldsymbol{\beta}} - \delta_j \log y_j].
+\ell(\boldsymbol{\beta}, \lambda) &=& \sum_j [\delta_j \log h(y_j) + \log S(y_j)] \\
+&=& \sum_{j=1}^n [\delta_j \log (\lambda \alpha y_j^{\lambda - 1} e^{\mathbf{x}_j^T \boldsymbol{\beta}}) - \alpha y_j^{\lambda} e^{\mathbf{x}_j^T \boldsymbol{\beta}}] \\
+&=& \sum_{j=1}^n [\delta_j [\log (\alpha y_j^{\lambda} e^{\mathbf{x}^T \boldsymbol{\beta}}) + \log \lambda - \log y_j] - \alpha y_j^{\lambda} e^{\mathbf{x}_j^T \boldsymbol{\beta}}] \\
+&=& \sum_{j=1}^n \{\delta_j [\log \alpha + \lambda \log y_j + \mathbf{x}_j^T \boldsymbol{\beta}] - \alpha y_j^{\lambda} e^{\mathbf{x}_j^T \boldsymbol{\beta}} + \delta_j(\log \lambda - \log y_j)\}.
 \end{eqnarray*}
-Again this is almost the log-likelihood if we pretend $\delta_j$ are independent Poisson$(\mu_j)$ where $\mu_j = \alpha y_j^{\lambda} e^{\mathbf{x}^T \boldsymbol{\beta}}$. 
-
-- The log link gives
-$$
-\log \mu_j = \log \alpha + \lambda \log y_j + \mathbf{x}_j^T \boldsymbol{\beta}.
-$$
-Therefore we should include offset term $\lambda \log y_j$ in the Poisson regression. 
+Again this is almost the log-likelihood if we pretend $\delta_j$ are independent Poisson$(\mu_j)$ where $\mu_j = \alpha y_j^{\lambda} e^{\mathbf{x}^T \boldsymbol{\beta}}$ and include $\lambda \log y_j$ as offset.
 
 - Setting the derivative wrt $\lambda$ to 0
 $$
 \frac{\partial \ell}{\partial \lambda} = \sum_{j=1}^n \frac{\delta_j}{\lambda} + \delta_j \log y_j - (\log y_j) (\alpha y_j^{\lambda} e^{\mathbf{x}^T \boldsymbol{\beta}}) = 0
 $$
-yields the estimation equation
+suggests an update
 $$
 \widehat{\lambda} = \frac{\sum_j \delta_j}{\sum_{j=1}^n (\mu_j - \delta_j) \log y_j}.
 $$
