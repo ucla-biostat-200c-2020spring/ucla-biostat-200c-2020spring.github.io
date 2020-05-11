@@ -146,7 +146,7 @@ tibble(dose    = df$conc,
     
 ## Prospective and retrospective sampling
 
-- In **prospective sampling** or **cohort study**, the predictors are fixed and then the outcome is observed. 
+- In **prospective sampling** or **cohort study** or **follow-up study**, the predictors are fixed and then the outcome is observed. 
 
 - In **retrospective sampling** or **case-control study**, the outcome is fixed and then the predictors are observed. It is required that the probability of inclusion in the study is independent of the predictor values. 
 
