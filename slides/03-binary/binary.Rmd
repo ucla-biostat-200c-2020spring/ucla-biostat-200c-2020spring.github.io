@@ -201,6 +201,11 @@ Then the relative risk is
 p1 / p2
 ```
 
+- When the probability of event is very small (rare disease assumption), i.e., $p_1, p_2 \approx 0$, then the odds ratio is approximately equal to the risk ratio
+$$
+\frac{o_1}{o_2} = \frac{p_1 / (1 - p_1)}{p_2 / (1 - p_2)} \approx \frac{p_1}{p_2}. 
+$$
+
 ## Inference (analysis of deviance)
 
 - The **deviance** of a logistic regression fit is 
