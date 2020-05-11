@@ -175,7 +175,7 @@ Therefore for canonical link the negative Hessian is positive semidefinte and Ne
 $$
   \mathbb{E} [- \nabla^2 \ell(\boldsymbol{\beta})] = \sum_{i=1}^n \frac{[\mu_i'(\eta_i)]^2}{\sigma_i^2} \mathbf{x}_i \mathbf{x}_i^T = \mathbf{X}^T \mathbf{W} \mathbf{X} \succeq 0,
 $$
-where $\mathbf{W} = \text{diag}([\mu_i'(\eta_i)]^2/\sigma_i^2)$. This modified Newton-Raphson algorithm is called the **Fishering scoring algorithm**. 
+where $\mathbf{W} = \text{diag}([\mu_i'(\eta_i)]^2/\sigma_i^2)$. This modified Newton-Raphson algorithm is called the **Fisher scoring algorithm**. 
 
 - Take the Binomial logistic regression as an example
 \begin{eqnarray*}
