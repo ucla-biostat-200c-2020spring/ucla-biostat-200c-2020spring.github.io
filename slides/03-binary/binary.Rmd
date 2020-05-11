@@ -188,7 +188,7 @@ How to interpret the effect of a pack a day (20 cigarettes) on heart disease?
 exp(beta_hat[3] * 20)
 ```
 
-- Suppose the probability of success in the presence of some condition is $p_1$ and $p_2$ in its absence. The **relative risk** is $p_1 / p_2$. For example, the predicted probability of a 68in tall person who smokes a pack (20 cigarettes) a day and who does not smoke are, respectively
+- Suppose the probability of success in the presence of some condition is $p_1$ and $p_2$ in its absence. The **relative risk** or **risk ratio** is $p_1 / p_2$. For example, the predicted probability of a 68in tall person who smokes a pack (20 cigarettes) a day and who does not smoke are, respectively
 ```{r}
 (p1 <- ilogit(sum(beta_hat * c(1, 68, 20))))
 ```
