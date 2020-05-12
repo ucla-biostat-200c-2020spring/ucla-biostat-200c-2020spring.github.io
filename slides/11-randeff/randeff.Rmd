@@ -11,7 +11,7 @@ subtitle: Biostat 200C
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(fig.align = 'center', cache = TRUE)
+knitr::opts_chunk$set(fig.align = 'center', cache = FALSE)
 ```
 
 Display system information and load `tidyverse` and `faraway` packages
@@ -118,7 +118,7 @@ we recognize it as a mixed effects model
 & & \mathbf{1}_{n_a}
 \end{pmatrix} \boldsymbol{\gamma} + \boldsymbol{\epsilon},
 \end{eqnarray*}
-where $\boldsymbol{\gamma} \sim N(\mathbf{0}_a, \sigma_{\alpha}^2 \mathbf{I}_a)$ and $\boldsymbol{\epsilon} \sim N(\mathbf{0}_{\sum_i n_i}, \sigma_{\epsilon}^2 \mathbf{I})$ are independent. Note in $\mathbf{Z}$ we have one column for each level. 
+where $\boldsymbol{\gamma} = (\alpha_1, \ldots, \alpha_a)^T \sim N(\mathbf{0}_a, \sigma_{\alpha}^2 \mathbf{I}_a)$ and $\boldsymbol{\epsilon} \sim N(\mathbf{0}_{\sum_i n_i}, \sigma_{\epsilon}^2 \mathbf{I})$ are independent. Note in $\mathbf{Z}$ we have one column for each level. 
 
 - How do we estimate parameters $\mu$, $\sigma_{\alpha}^2$, and $\sigma_{\epsilon}^2$?
 
@@ -128,7 +128,12 @@ where $\boldsymbol{\gamma} \sim N(\mathbf{0}_a, \sigma_{\alpha}^2 \mathbf{I}_a)$
 
 - Consider the one-way ANOVA case. Assume we have a **balanced design**: $n_1 = \cdots = n_a = n$. That is each level has the same number of observations $n$. For example $n=5$ in the `pulp` example.
 
-- The familar ANOVA table gives the partition
+- Because $\mathbb{E} Y_{ij} = \mu$. So we can estimate $\mu$ by average of $y_{ij}$
+```{r}
+mean(pulp$bright)
+```
+
+- To estimate the variance component parameters $\sigma_a^2$ and $\sigma_\epsilon^2$, the familiar ANOVA table gives the partition
 \begin{eqnarray*}
 \text{SST} &=& \text{SSE} + \text{SSA} \\
 \sum_{i=1}^a \sum_{j=1}^n (y_{ij} - \bar{y}_{\cdot \cdot})^2 &=& \sum_{i=1}^a \sum_{j=1}^n (y_{ij} - \bar{y}_{i \cdot})^2 + \sum_{i=1}^a \sum_{j=1}^n (\bar{y}_{i \cdot} - \bar{y}_{\cdot \cdot})^2.
@@ -229,10 +234,10 @@ We found the REML estimate is exactly same as ANOVA estimate. **Exercise (HW4)**
 
 - F tests for fixed effects need to use adjusted degrees of freedom (Kenward-Roger adjusted F-test), as implemented in the `pbkrtest` package.
 
-- Testing the variance component parameters, e.g., $H_0:\sigma_{\alpha}^2=0$, can be hard too. Traditional method like LRT can be wrong. E.g., for the `pulp` data, LRT using the the conventional $\chi_1^2$ null distribution gives a non-significant p-value. 
+- Testing the variance component parameters, e.g., $H_0:\sigma_{\alpha}^2=0$, can be hard because of the boundary condition (estimator has to be nonnegative). Conventional $\chi^2$ null distribution for LRT can be wrong. E.g., for the `pulp` data, LRT using the the conventional $\chi_1^2$ null distribution gives a non-significant p-value. 
 ```{r}
 nullmod <- lm(bright ~ 1, data = pulp)
-(lrtstat <- as.numeric(2 * (logLik(smod) - logLik(nullmod))))
+(lrtstat <- as.numeric(2 * (logLik(smod, REML = FALSE) - logLik(nullmod))))
 # fishy result using LRT
 pchisq(lrtstat, 1, lower.tail = FALSE)
 ```
@@ -248,8 +253,9 @@ set.seed(123) # for reproducibility
 for (i in 1:B) {
   y <- unlist(simulate(nullmod))
   bnull <- lm(y ~ 1)
+  #balt <- refitML(smod, y)
   balt  <- lmer(y ~ 1 + (1 | operator), pulp, REML = FALSE)
-  lrstat[i] <- as.numeric(2 * (logLik(balt) - logLik(bnull)))
+  lrstat[i] <- as.numeric(2 * (logLik(balt, REML = FALSE) - logLik(bnull)))
 }
 
 # parametric bootstrap p-value
@@ -389,7 +395,7 @@ nmod <- lmer(yield ~ 1 + (1 | blend), penicillin, REML = FALSE)
 KRmodcomp(amod, nmod)
 ```
 
-- Parametric bootstrap. We observed LRT statistic
+-  LRT using $\chi^2$ null distribution.
 ```{r}
 as.numeric(2 * (logLik(amod) - logLik(nmod)))
 ```
@@ -397,15 +403,17 @@ The $\chi_3$ approximation gives p-value
 ```{r}
 pchisq(4.0474, 3, lower.tail = FALSE)
 ```
-Now we use parametric bootstrap
+
+- Parametric bootstrap. Now we use parametric bootstrap to obtain a p-value for the LRT.
+
 ```{r}
 set.seed(123)
 B <- 1000
 lrstat <- numeric(B)
 for (i in 1:B) {
   ryield <- unlist(simulate(nmod))
-  nmodr <- refit(nmod, ryield)
-  amodr <- refit(amod, ryield)
+  nmodr <- refitML(nmod, ryield)
+  amodr <- refitML(amod, ryield)
   lrstat[i] <- 2 * (logLik(amodr) - logLik(nmodr))
 }
 ```
