@@ -20,10 +20,6 @@ sessionInfo()
 library(tidyverse)
 library(faraway)
 ```
-`faraway` package contains the datasets in the ELMR book.
-```{r, include=FALSE}
-knitr::opts_chunk$set(fig.align = 'center', cache = FALSE)
-```
 
 ## Introduction
 
@@ -116,13 +112,13 @@ y_{ij} = \mu + \alpha_i + \epsilon_{ij}, \quad i=1,\ldots,a,
 $$
 we recognize it as a mixed effects model
 \begin{eqnarray*}
-\mathbf{y} = \mathbf{1}_n \mu + \begin{pmatrix}
+\mathbf{y} = \mathbf{1}_{\sum_i n_i} \mu + \begin{pmatrix}
 \mathbf{1}_{n_1} & & \\
 & \vdots & \\
 & & \mathbf{1}_{n_a}
 \end{pmatrix} \boldsymbol{\gamma} + \boldsymbol{\epsilon},
 \end{eqnarray*}
-where $\boldsymbol{\gamma} \sim N(\mathbf{0}_a, \sigma_{\alpha}^2 \mathbf{I}_a)$ and $\boldsymbol{\epsilon} \sim N(\mathbf{0}_{\sum_i n_i}, \sigma_{\epsilon}^2 \mathbf{I})$ are independent. Note in $\mathbf{Z}$ use have one column for each level. 
+where $\boldsymbol{\gamma} \sim N(\mathbf{0}_a, \sigma_{\alpha}^2 \mathbf{I}_a)$ and $\boldsymbol{\epsilon} \sim N(\mathbf{0}_{\sum_i n_i}, \sigma_{\epsilon}^2 \mathbf{I})$ are independent. Note in $\mathbf{Z}$ we have one column for each level. 
 
 - How do we estimate parameters $\mu$, $\sigma_{\alpha}^2$, and $\sigma_{\epsilon}^2$?
 
@@ -216,7 +212,7 @@ summary(smod)
 $$
 \mathbf{K}^T \mathbf{Y} \sim N(\mathbf{0}_{n-p}, \mathbf{K}^T (\mathbf{Z} \boldsymbol{\Sigma} \mathbf{Z}^T + \sigma^2 \mathbf{I}) \mathbf{K}).
 $$
-We estimate variance component parameters $(\sigma^2, \boldsymbol{\Sigma})$ by MLE using this transformed data $(\mathbf{K}^T \mathbf{y}, \mathbf{K}^T \mathbf{Z})$. Then we estimate fixed effects $\boldsymbol{\beta}$ using general least squares. We can show that the REML estimate does not depend on the choice of $\mathbf{K}$.
+We estimate variance component parameters $(\sigma^2, \boldsymbol{\Sigma})$ by MLE using this transformed data $(\mathbf{K}^T \mathbf{y}, \mathbf{K}^T \mathbf{Z})$. Then we estimate fixed effects $\boldsymbol{\beta}$ using general least squares. It can be shown that the REML estimate does not depend on the choice of $\mathbf{K}$.
 
 - Let's find the REML for the `pulp` data using `lme4`. 
 ```{r}
@@ -229,9 +225,9 @@ We found the REML estimate is exactly same as ANOVA estimate. **Exercise (HW4)**
 
 ## Inference
 
-- If we compare two nested models that differ only in fixed effects, we can use the standard likelihood ratio test (LRT). Remember we have to use REML estimates for LRT.  
+- If we compare two nested models that differ only in fixed effects, we can use the standard likelihood ratio test (LRT). Remember we have to use MLE (not REML) for LRT.  
 
-    F tests for fixed effects can fail. What degrees of freedom to use? 
+- F tests for fixed effects need to use adjusted degrees of freedom (Kenward-Roger adjusted F-test), as implemented in the `pbkrtest` package.
 
 - Testing the variance component parameters, e.g., $H_0:\sigma_{\alpha}^2=0$, can be hard too. Traditional method like LRT can be wrong. E.g., for the `pulp` data, LRT using the the conventional $\chi_1^2$ null distribution gives a non-significant p-value. 
 ```{r}
@@ -257,7 +253,7 @@ for (i in 1:B) {
 }
 
 # parametric bootstrap p-value
-pval <- mean(lrstat > 2.5684)
+(pval <- mean(lrstat > 2.5684))
 ```
 The standard error of the p-value is
 ```{r}
@@ -265,7 +261,7 @@ sqrt(pval * (1 - pval) / B)
 ```
 
 - Advantages of parametric boostrap:  
-    - It's not restricted to MLE estimators. It applies to any other estimators.  
+    - It's not restricted to MLE estimators. It applies to many other estimators.  
     - It does not rely on the dubious asymptotic $\chi^2$ distribution.  
     - It can be used to generate confidence intervals.  
     - It applies to inference of both $\boldsymbol{\beta}$ and variance component parameters.  
@@ -290,10 +286,9 @@ $$
 	\mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \boldsymbol{\gamma} + \boldsymbol{\epsilon},
 \end{eqnarray*}
 $$
-where $\boldsymbol{\epsilon} \sim N(\mathbf{0}_n, \sigma^2 \mathbf{I})$ and $\boldsymbol{\gamma} \sim N(\mathbf{0}_q, \boldsymbol{\Sigma})$ are independent of each other.
-The random effects $\boldsymbol{\gamma}$ are random variables. It does not make sense to estimate $\boldsymbol{\gamma}$. 
+where $\boldsymbol{\epsilon} \sim N(\mathbf{0}_n, \sigma^2 \mathbf{I})$ and $\boldsymbol{\gamma} \sim N(\mathbf{0}_q, \boldsymbol{\Sigma})$ are independent of each other. The random effects $\boldsymbol{\gamma}$ are random variables. It does not make sense to estimate $\boldsymbol{\gamma}$. 
 
-- However, if we take the Bayesian point of view, we can estimate it by posterior mean. We have a **likelihood**
+- However, if we take the Bayesian point of view, we can estimate it by its posterior mean. We have a **likelihood**
 $$
 \mathbf{y} \mid \boldsymbol{\gamma} \sim N(\mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \boldsymbol{\gamma}, \sigma^2 \mathbf{I}_n)
 $$
@@ -311,7 +306,7 @@ $$
 \mathbb{E} (\boldsymbol{\gamma} \mid \mathbf{y}) = \boldsymbol{\Sigma} \mathbf{Z} (\mathbf{Z} \boldsymbol{\Sigma} \mathbf{Z}^T + \sigma^2 \mathbf{I})^{-1} (\mathbf{y} - \mathbf{X} \boldsymbol{\beta}).
 $$
 
-- We can use this posterior mean to restimate random effects. For the `pulp` data, estimte of random effects are obtained by
+- We can use this posterior mean to estimate random effects. For the `pulp` data, estimate of random effects is obtained by
 ```{r}
 ranef(mmod)$operator
 ```
@@ -385,17 +380,7 @@ ranef(mmod)$blend
 
 ### Test fixed effects
 
-- For this balanced case, we can use `aov` to test significance of fixed effect `treat`
-```{r}
-amod <- aov(yield ~ treat + Error(blend), data = penicillin)
-summary(amod)
-```
-
-- The F test also applies to this balanced case, but cannot be generalized to more complicated cases.
-```{r}
-anova(mmod)
-```
-More reliable F-tests can be achieved using adjusted degrees of freedom.
+- F-tests can be achieved using adjusted degrees of freedom.
 ```{r}
 library(pbkrtest)
 
@@ -423,9 +408,17 @@ for (i in 1:B) {
   amodr <- refit(amod, ryield)
   lrstat[i] <- 2 * (logLik(amodr) - logLik(nmodr))
 }
-# p-value estimated by parametric bootstrap
-mean(lrstat > 4.0474)
 ```
+The bootstrap p-value is
+```{r}
+# p-value estimated by parametric bootstrap
+(pval <- mean(lrstat > 4.0474))
+```
+with standard error
+```{r}
+sqrt(pval * (1 - pval) / B)
+```
+
 The `pbkrtest` packages automate this parametric boostrap procedure.
 ```{r}
 library(pbkrtest)
@@ -451,7 +444,7 @@ for (i in 1:B) {
   ryield <- unlist(simulate(nlmod))  
   nlmodr <- lm(ryield ~ treat, data = penicillin)
   rmodr <- refit(rmod, ryield)
-  lrstatf[i] <- 2 * (logLik(rmodr) - logLik(nlmodr))
+  lrstatf[i] <- 2 * (logLik(rmodr, REML = FALSE) - logLik(nlmodr, REML = FALSE))
 }
 mean(lrstatf > 3.453634)
 ```
@@ -460,5 +453,9 @@ mean(lrstatf > 3.453634)
 ```{r}
 library(RLRsim)
 
-exactRLRT(rmod)
+exactLRT(rmod, nlmod)
 ```
+
+## Other designs
+
+More complicated designs discussed in ELMR (split plots, cross effects, multi-level model) are not covered in this course. 

@@ -390,6 +390,7 @@ summary {
 <li><a href="#test-fixed-effects">Test fixed effects</a></li>
 <li><a href="#test-random-effects">Test random effects</a></li>
 </ul></li>
+<li><a href="#other-designs">Other designs</a></li>
 </ul>
 </div>
 
@@ -424,7 +425,6 @@ summary {
 ## x dplyr::filter() masks stats::filter()
 ## x dplyr::lag()    masks stats::lag()</code></pre>
 <pre class="r"><code>library(faraway)</code></pre>
-<p><code>faraway</code> package contains the datasets in the ELMR book.</p>
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
 <ul>
@@ -585,12 +585,12 @@ y_{ij} = \mu + \alpha_i + \epsilon_{ij}, \quad i = 1,\ldots,4, j = 1,\ldots,5,
 <li><p>For the one-way ANOVA random effects model with <span class="math inline">\(a\)</span> levels and <span class="math inline">\(n_i\)</span> observations in level <span class="math inline">\(i\)</span>, <span class="math display">\[
 y_{ij} = \mu + \alpha_i + \epsilon_{ij}, \quad i=1,\ldots,a,
 \]</span> we recognize it as a mixed effects model <span class="math display">\[\begin{eqnarray*}
-\mathbf{y} = \mathbf{1}_n \mu + \begin{pmatrix}
+\mathbf{y} = \mathbf{1}_{\sum_i n_i} \mu + \begin{pmatrix}
 \mathbf{1}_{n_1} &amp; &amp; \\
 &amp; \vdots &amp; \\
 &amp; &amp; \mathbf{1}_{n_a}
 \end{pmatrix} \boldsymbol{\gamma} + \boldsymbol{\epsilon},
-\end{eqnarray*}\]</span> where <span class="math inline">\(\boldsymbol{\gamma} \sim N(\mathbf{0}_a, \sigma_{\alpha}^2 \mathbf{I}_a)\)</span> and <span class="math inline">\(\boldsymbol{\epsilon} \sim N(\mathbf{0}_{\sum_i n_i}, \sigma_{\epsilon}^2 \mathbf{I})\)</span> are independent. Note in <span class="math inline">\(\mathbf{Z}\)</span> use have one column for each level.</p></li>
+\end{eqnarray*}\]</span> where <span class="math inline">\(\boldsymbol{\gamma} \sim N(\mathbf{0}_a, \sigma_{\alpha}^2 \mathbf{I}_a)\)</span> and <span class="math inline">\(\boldsymbol{\epsilon} \sim N(\mathbf{0}_{\sum_i n_i}, \sigma_{\epsilon}^2 \mathbf{I})\)</span> are independent. Note in <span class="math inline">\(\mathbf{Z}\)</span> we have one column for each level.</p></li>
 <li><p>How do we estimate parameters <span class="math inline">\(\mu\)</span>, <span class="math inline">\(\sigma_{\alpha}^2\)</span>, and <span class="math inline">\(\sigma_{\epsilon}^2\)</span>?</p></li>
 </ul>
 </div>
@@ -695,7 +695,7 @@ summary(smod)</code></pre>
 <li><p>The restricted maximum likelihood (REML) method tries to reduce the bias in variance component estimates.</p></li>
 <li><p>Assume <span class="math inline">\(\mathbf{X}\)</span> has full column rank <span class="math inline">\(p\)</span>. Let <span class="math inline">\(\mathbf{K} \in \mathbb{R}^{n-p}\)</span> be any basis of the space <span class="math inline">\({\cal N}(\mathbf{X}^T)\)</span>, which is orthogonal to <span class="math inline">\({\cal C}(\mathbf{X})\)</span>. Then <span class="math display">\[
 \mathbf{K}^T \mathbf{Y} \sim N(\mathbf{0}_{n-p}, \mathbf{K}^T (\mathbf{Z} \boldsymbol{\Sigma} \mathbf{Z}^T + \sigma^2 \mathbf{I}) \mathbf{K}).
-\]</span> We estimate variance component parameters <span class="math inline">\((\sigma^2, \boldsymbol{\Sigma})\)</span> by MLE using this transformed data <span class="math inline">\((\mathbf{K}^T \mathbf{y}, \mathbf{K}^T \mathbf{Z})\)</span>. Then we estimate fixed effects <span class="math inline">\(\boldsymbol{\beta}\)</span> using general least squares. We can show that the REML estimate does not depend on the choice of <span class="math inline">\(\mathbf{K}\)</span>.</p></li>
+\]</span> We estimate variance component parameters <span class="math inline">\((\sigma^2, \boldsymbol{\Sigma})\)</span> by MLE using this transformed data <span class="math inline">\((\mathbf{K}^T \mathbf{y}, \mathbf{K}^T \mathbf{Z})\)</span>. Then we estimate fixed effects <span class="math inline">\(\boldsymbol{\beta}\)</span> using general least squares. It can be shown that the REML estimate does not depend on the choice of <span class="math inline">\(\mathbf{K}\)</span>.</p></li>
 <li><p>Let’s find the REML for the <code>pulp</code> data using <code>lme4</code>.</p></li>
 </ul>
 <pre class="r"><code>library(lme4)
@@ -727,8 +727,8 @@ summary(mmod)</code></pre>
 <div id="inference" class="section level2">
 <h2>Inference</h2>
 <ul>
-<li><p>If we compare two nested models that differ only in fixed effects, we can use the standard likelihood ratio test (LRT). Remember we have to use REML estimates for LRT.</p>
-<p>F tests for fixed effects can fail. What degrees of freedom to use?</p></li>
+<li><p>If we compare two nested models that differ only in fixed effects, we can use the standard likelihood ratio test (LRT). Remember we have to use MLE (not REML) for LRT.</p></li>
+<li><p>F tests for fixed effects need to use adjusted degrees of freedom (Kenward-Roger adjusted F-test), as implemented in the <code>pbkrtest</code> package.</p></li>
 <li><p>Testing the variance component parameters, e.g., <span class="math inline">\(H_0:\sigma_{\alpha}^2=0\)</span>, can be hard too. Traditional method like LRT can be wrong. E.g., for the <code>pulp</code> data, LRT using the the conventional <span class="math inline">\(\chi_1^2\)</span> null distribution gives a non-significant p-value.</p></li>
 </ul>
 <pre class="r"><code>nullmod &lt;- lm(bright ~ 1, data = pulp)
@@ -1453,14 +1453,15 @@ for (i in 1:B) {
 ## boundary (singular) fit: see ?isSingular
 ## boundary (singular) fit: see ?isSingular</code></pre>
 <pre class="r"><code># parametric bootstrap p-value
-pval &lt;- mean(lrstat &gt; 2.5684)</code></pre>
+(pval &lt;- mean(lrstat &gt; 2.5684))</code></pre>
+<pre><code>## [1] 0.019</code></pre>
 <p>The standard error of the p-value is</p>
 <pre class="r"><code>sqrt(pval * (1 - pval) / B)</code></pre>
 <pre><code>## [1] 0.004317291</code></pre>
 <ul>
 <li>Advantages of parametric boostrap:
 <ul>
-<li>It’s not restricted to MLE estimators. It applies to any other estimators.<br />
+<li>It’s not restricted to MLE estimators. It applies to many other estimators.<br />
 </li>
 <li>It does not rely on the dubious asymptotic <span class="math inline">\(\chi^2\)</span> distribution.<br />
 </li>
@@ -1502,7 +1503,7 @@ exactLRT(smod, nullmod)</code></pre>
   \mathbf{y} = \mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \boldsymbol{\gamma} + \boldsymbol{\epsilon},
 \end{eqnarray*}
 \]</span> where <span class="math inline">\(\boldsymbol{\epsilon} \sim N(\mathbf{0}_n, \sigma^2 \mathbf{I})\)</span> and <span class="math inline">\(\boldsymbol{\gamma} \sim N(\mathbf{0}_q, \boldsymbol{\Sigma})\)</span> are independent of each other. The random effects <span class="math inline">\(\boldsymbol{\gamma}\)</span> are random variables. It does not make sense to estimate <span class="math inline">\(\boldsymbol{\gamma}\)</span>.</p></li>
-<li><p>However, if we take the Bayesian point of view, we can estimate it by posterior mean. We have a <strong>likelihood</strong> <span class="math display">\[
+<li><p>However, if we take the Bayesian point of view, we can estimate it by its posterior mean. We have a <strong>likelihood</strong> <span class="math display">\[
 \mathbf{y} \mid \boldsymbol{\gamma} \sim N(\mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \boldsymbol{\gamma}, \sigma^2 \mathbf{I}_n)
 \]</span> and a <strong>prior distribution</strong> <span class="math display">\[
 \boldsymbol{\gamma} \sim N(\mathbf{0}_q, \boldsymbol{\Sigma}).
@@ -1512,7 +1513,7 @@ f(\boldsymbol{\gamma} \mid \mathbf{y}) &amp;=&amp; \frac{f(\mathbf{y} \mid \bold
 \end{eqnarray*}\]</span> is a multivariate normal with mean (show in <strong>HW4</strong>) <span class="math display">\[
 \mathbb{E} (\boldsymbol{\gamma} \mid \mathbf{y}) = \boldsymbol{\Sigma} \mathbf{Z} (\mathbf{Z} \boldsymbol{\Sigma} \mathbf{Z}^T + \sigma^2 \mathbf{I})^{-1} (\mathbf{y} - \mathbf{X} \boldsymbol{\beta}).
 \]</span></p></li>
-<li><p>We can use this posterior mean to restimate random effects. For the <code>pulp</code> data, estimte of random effects are obtained by</p></li>
+<li><p>We can use this posterior mean to estimate random effects. For the <code>pulp</code> data, estimate of random effects is obtained by</p></li>
 </ul>
 <pre class="r"><code>ranef(mmod)$operator</code></pre>
 <pre><code>##   (Intercept)
@@ -1662,27 +1663,8 @@ summary(mmod)</code></pre>
 <div id="test-fixed-effects" class="section level3">
 <h3>Test fixed effects</h3>
 <ul>
-<li>For this balanced case, we can use <code>aov</code> to test significance of fixed effect <code>treat</code></li>
+<li>F-tests can be achieved using adjusted degrees of freedom.</li>
 </ul>
-<pre class="r"><code>amod &lt;- aov(yield ~ treat + Error(blend), data = penicillin)
-summary(amod)</code></pre>
-<pre><code>## 
-## Error: blend
-##           Df Sum Sq Mean Sq F value Pr(&gt;F)
-## Residuals  4    264      66               
-## 
-## Error: Within
-##           Df Sum Sq Mean Sq F value Pr(&gt;F)
-## treat      3     70   23.33   1.239  0.339
-## Residuals 12    226   18.83</code></pre>
-<ul>
-<li>The F test also applies to this balanced case, but cannot be generalized to more complicated cases.</li>
-</ul>
-<pre class="r"><code>anova(mmod)</code></pre>
-<pre><code>## Analysis of Variance Table
-##       npar Sum Sq Mean Sq F value
-## treat    3     70  23.333  1.2389</code></pre>
-<p>More reliable F-tests can be achieved using adjusted degrees of freedom.</p>
 <pre class="r"><code>library(pbkrtest)
 
 amod &lt;- lmer(yield ~ treat + (1 | blend), data = penicillin, REML = FALSE)
@@ -2106,16 +2088,20 @@ for (i in 1:B) {
 ## boundary (singular) fit: see ?isSingular
 ## boundary (singular) fit: see ?isSingular
 ## boundary (singular) fit: see ?isSingular</code></pre>
+<p>The bootstrap p-value is</p>
 <pre class="r"><code># p-value estimated by parametric bootstrap
-mean(lrstat &gt; 4.0474)</code></pre>
+(pval &lt;- mean(lrstat &gt; 4.0474))</code></pre>
 <pre><code>## [1] 0.352</code></pre>
+<p>with standard error</p>
+<pre class="r"><code>sqrt(pval * (1 - pval) / B)</code></pre>
+<pre><code>## [1] 0.01510285</code></pre>
 <p>The <code>pbkrtest</code> packages automate this parametric boostrap procedure.</p>
 <pre class="r"><code>library(pbkrtest)
 
 set.seed(123)
 pmod &lt;- PBmodcomp(amod, nmod)
 summary(pmod)</code></pre>
-<pre><code>## Bootstrap test; time: 16.14 sec;samples: 1000; extremes: 353;
+<pre><code>## Bootstrap test; time: 15.89 sec;samples: 1000; extremes: 353;
 ## large : yield ~ treat + (1 | blend)
 ## small : yield ~ 1 + (1 | blend)
 ##            stat     df    ddf p.value
@@ -2141,7 +2127,7 @@ for (i in 1:B) {
   ryield &lt;- unlist(simulate(nlmod))  
   nlmodr &lt;- lm(ryield ~ treat, data = penicillin)
   rmodr &lt;- refit(rmod, ryield)
-  lrstatf[i] &lt;- 2 * (logLik(rmodr) - logLik(nlmodr))
+  lrstatf[i] &lt;- 2 * (logLik(rmodr, REML = FALSE) - logLik(nlmodr, REML = FALSE))
 }</code></pre>
 <pre><code>## boundary (singular) fit: see ?isSingular
 ## boundary (singular) fit: see ?isSingular
@@ -2685,15 +2671,19 @@ for (i in 1:B) {
 </ul>
 <pre class="r"><code>library(RLRsim)
 
-exactRLRT(rmod)</code></pre>
+exactLRT(rmod, nlmod)</code></pre>
+<pre><code>## No restrictions on fixed effects. REML-based inference preferable.</code></pre>
 <pre><code>## 
-##  simulated finite sample distribution of RLRT.
-##  
-##  (p-value based on 10000 simulated values)
+##  simulated finite sample distribution of LRT. (p-value based on 10000
+##  simulated values)
 ## 
 ## data:  
-## RLRT = 2.7629, p-value = 0.0412</code></pre>
+## LRT = 3.4536, p-value = 0.0412</code></pre>
 </div>
+</div>
+<div id="other-designs" class="section level2">
+<h2>Other designs</h2>
+<p>More complicated designs discussed in ELMR (split plots, cross effects, multi-level model) are not covered in this course.</p>
 </div>
 
 
