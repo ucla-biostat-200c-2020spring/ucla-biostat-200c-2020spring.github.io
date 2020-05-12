@@ -317,7 +317,7 @@ $\alpha_j$ conveniently cancels out in the final expression. We can form the con
 $$
 L(\boldsymbol{\beta}) = \prod_{j=1}^n \frac{1}{1 + \sum_{i=1}^M \exp (\mathbf{x}_{ij} - \mathbf{x}_{0j})^T \boldsymbol{\beta}},
 $$
-which is identical to that from a proportional hazards mdoel.
+which is identical to that from a Cox proportional hazards mdoel.
 
 - The `amlxray` data concerns the x-ray exposure and childhood acute myeloid leukemia. The sets are matched on age, race, and county of residence. 
 ```{r}
