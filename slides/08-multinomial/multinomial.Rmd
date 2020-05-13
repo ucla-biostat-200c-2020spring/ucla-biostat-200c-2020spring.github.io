@@ -337,7 +337,7 @@ $$
 $$
   \text{Hazard}(j) = \mathbb{P}(Y_i = j \mid Y_i \ge j) = \frac{\mathbb{P}(Y_i = j)}{\mathbb{P}(Y_i \ge j)} = \frac{\gamma_{ij} - \gamma_{i,j-1}}{1 - \gamma_{i,j-1}}.
 $$
-The quantity $- \log \mathbb{P}(Y \ge j)$ is called the cumulative hazard function. 
+The quantity $- \log \mathbb{P}(Y > j)$ is called the cumulative hazard function. 
 
 - Since 
 \begin{eqnarray*}

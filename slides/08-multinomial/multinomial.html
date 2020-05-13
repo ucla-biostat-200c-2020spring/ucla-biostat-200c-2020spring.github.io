@@ -1034,7 +1034,7 @@ predict(opmod, data.frame(nincome = il), type = &quot;probs&quot;)</code></pre>
 \]</span></p></li>
 <li><p>The <strong>hazard</strong> of category <span class="math inline">\(j\)</span> is the probability of falling in category <span class="math inline">\(j\)</span> given that your category is greater than <span class="math inline">\(j\)</span> <span class="math display">\[
 \text{Hazard}(j) = \mathbb{P}(Y_i = j \mid Y_i \ge j) = \frac{\mathbb{P}(Y_i = j)}{\mathbb{P}(Y_i \ge j)} = \frac{\gamma_{ij} - \gamma_{i,j-1}}{1 - \gamma_{i,j-1}}.
-\]</span> The quantity <span class="math inline">\(- \log \mathbb{P}(Y \ge j)\)</span> is called the cumulative hazard function.</p></li>
+\]</span> The quantity <span class="math inline">\(- \log \mathbb{P}(Y &gt; j)\)</span> is called the cumulative hazard function.</p></li>
 <li><p>Since <span class="math display">\[\begin{eqnarray*}
 1 - \gamma_j(\mathbf{x}) &amp;=&amp; \mathbb{P}(Y &gt; j) = e^{- e^{\theta_j - \mathbf{x}^T \boldsymbol{\beta}}},
 \end{eqnarray*}\]</span> we have <span class="math display">\[\begin{eqnarray*}
