@@ -213,7 +213,7 @@ summary(smod)
 
 - The restricted maximum likelihood (REML) method tries to reduce the bias in variance component estimates. 
 
-- Assume $\mathbf{X}$ has full column rank $p$. Let $\mathbf{K} \in \mathbb{R}^{n-p}$ be any basis of the space ${\cal N}(\mathbf{X}^T)$, which is orthogonal to ${\cal C}(\mathbf{X})$. Then
+- Assume $\mathbf{X}$ has full column rank $p$. Let $\mathbf{K} \in \mathbb{R}^{n \times (n-p)}$ be an basis of the space ${\cal N}(\mathbf{X}^T)$, which is orthogonal to ${\cal C}(\mathbf{X})$. Then
 $$
 \mathbf{K}^T \mathbf{Y} \sim N(\mathbf{0}_{n-p}, \mathbf{K}^T (\mathbf{Z} \boldsymbol{\Sigma} \mathbf{Z}^T + \sigma^2 \mathbf{I}) \mathbf{K}).
 $$
