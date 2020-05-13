@@ -337,10 +337,25 @@ $$
 $$
   \text{Hazard}(j) = \mathbb{P}(Y_i = j \mid Y_i \ge j) = \frac{\mathbb{P}(Y_i = j)}{\mathbb{P}(Y_i \ge j)} = \frac{\gamma_{ij} - \gamma_{i,j-1}}{1 - \gamma_{i,j-1}}.
 $$
-It is called the **proportional hazards model** because of the relation
+The quantity $- \log \mathbb{P}(Y \ge j)$ is called the cumulative hazard function. 
+
+- Since 
+\begin{eqnarray*}
+1 - \gamma_j(\mathbf{x}) &=& \mathbb{P}(Y > j) = e^{- e^{\theta_j - \mathbf{x}^T \boldsymbol{\beta}}},
+\end{eqnarray*}
+we have
+\begin{eqnarray*}
+\log \mathbb{P}(Y > j) = - e^{\theta_j - \mathbf{x}^T \boldsymbol{\beta}}
+\end{eqnarray*}
+and
 $$
-  \mathbb{P}(Y > j \mid \mathbf{x}_1) = [\mathbb{P}(Y > j \mid \mathbf{x}_2)]^{\exp (\mathbf{x}_1 - \mathbf{x}_2)^T \beta}.
+\frac{- \log \mathbb{P}(Y > j \mid \mathbf{x}_1)}{- \log \mathbb{P}(Y > j \mid \mathbf{x}_2)} = e^{(\mathbf{x}_2 - \mathbf{x}_1)^T \boldsymbol{\beta}}
 $$
+or
+$$
+  \mathbb{P}(Y > j \mid \mathbf{x}_1) = [\mathbb{P}(Y > j \mid \mathbf{x}_2)]^{\exp (\mathbf{x}_2 - \mathbf{x}_1)^T \boldsymbol{\beta}}.
+$$
+It is called the **proportional hazards model** because the ratio of cumulative hazards does not depend on level $j$.
 
 ```{r}
 polr(sPID ~ nincome, method = "cloglog", data = nes96)
