@@ -251,17 +251,19 @@ B <- 1000
 lrstat <- numeric(B)
 set.seed(123) # for reproducibility
 for (i in 1:B) {
-  y <- unlist(simulate(nullmod))
-  bnull <- lm(y ~ 1)
-  #balt <- refitML(smod, y)
-  balt  <- lmer(y ~ 1 + (1 | operator), pulp, REML = FALSE)
+  by <- unlist(simulate(nullmod))
+  bnull <- lm(by ~ 1)
+  #balt  <- refitML(smod, by)
+  balt  <- lmer(by ~ 1 + (1 | operator), pulp, REML = FALSE)
   lrstat[i] <- as.numeric(2 * (logLik(balt, REML = FALSE) - logLik(bnull)))
 }
-
+```
+Then the bootstrap p-value is
+```{r}
 # parametric bootstrap p-value
 (pval <- mean(lrstat > 2.5684))
 ```
-The standard error of the p-value is
+with standard error
 ```{r}
 sqrt(pval * (1 - pval) / B)
 ```
@@ -397,9 +399,9 @@ KRmodcomp(amod, nmod)
 
 -  LRT using $\chi^2$ null distribution.
 ```{r}
-as.numeric(2 * (logLik(amod) - logLik(nmod)))
+as.numeric(2 * (logLik(amod, REML = FALSE) - logLik(nmod, REML = FALSE)))
 ```
-The $\chi_3$ approximation gives p-value
+The $\chi_3^2$ approximation gives p-value
 ```{r}
 pchisq(4.0474, 3, lower.tail = FALSE)
 ```
@@ -412,9 +414,9 @@ B <- 1000
 lrstat <- numeric(B)
 for (i in 1:B) {
   ryield <- unlist(simulate(nmod))
-  nmodr <- refitML(nmod, ryield)
-  amodr <- refitML(amod, ryield)
-  lrstat[i] <- 2 * (logLik(amodr) - logLik(nmodr))
+  nmodr <- lmer(ryield ~ 1 + (1 | blend), data = penicillin, REML = FALSE)
+  amodr <- lmer(ryield ~ treat + (1 | blend), data = penicillin, REML = FALSE)
+  lrstat[i] <- 2 * (logLik(amodr, REML = FALSE) - logLik(nmodr, REML = FALSE))
 }
 ```
 The bootstrap p-value is
@@ -427,7 +429,7 @@ with standard error
 sqrt(pval * (1 - pval) / B)
 ```
 
-The `pbkrtest` packages automate this parametric boostrap procedure.
+- The `pbkrtest` packages automate this parametric boostrap procedure (`PBtest`) along with LRT and other tests for fixed effects.
 ```{r}
 library(pbkrtest)
 
@@ -442,7 +444,7 @@ summary(pmod)
 ```{r}
 rmod <- lmer(yield ~ treat + (1 | blend), data = penicillin, REML = FALSE)
 nlmod <- lm(yield ~ treat, data = penicillin)
-as.numeric(2 * (logLik(rmod) - logLik(nlmod)))
+as.numeric(2 * (logLik(rmod, REML = FALSE) - logLik(nlmod)))
 ```
 Parametric boostrap:
 ```{r}
@@ -451,8 +453,8 @@ lrstatf <- numeric(B)
 for (i in 1:B) {
   ryield <- unlist(simulate(nlmod))  
   nlmodr <- lm(ryield ~ treat, data = penicillin)
-  rmodr <- refit(rmod, ryield)
-  lrstatf[i] <- 2 * (logLik(rmodr, REML = FALSE) - logLik(nlmodr, REML = FALSE))
+  rmodr <- lmer(ryield ~ treat + (1 | blend), data = penicillin, REML = FALSE)
+  lrstatf[i] <- 2 * (logLik(rmodr, REML = FALSE) - logLik(nlmodr))
 }
 mean(lrstatf > 3.453634)
 ```
