@@ -1,0 +1,223 @@
+---
+title: "Biostat 200C Midterm"
+author: "FirstName LastName (UID XXX-XXX-XXX)"
+subtitle: May 14, 2020 @ 10am-12pm
+output:
+  html_document:
+    toc: yes
+    toc_depth: 4
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE)
+library(tidyverse)
+library(faraway)
+library(survival)
+```
+
+To sumbit, please email Rmd and html files to Shanpeng Li <lishanpeng0913@ucla.edu> by May 14 @ 12pm. **Submission received after 12:15pm will be considered invalid.** If you prefer to write on paper, then take clear photos of your writing and email them to Shanpeng Li.
+
+## Q1. (12 pts) True or false
+
+| No. | | | Statement |
+|:-|:-|:-|:------------------------|
+| 1. | T | F | Suppose the outcome in a study is systolic blood pressure, treated continuously. Then a logistic model should be used for analysis. |  
+| 2. | T | F | The range of the logistic function lies between 0 and 1. |  
+| 3. | T | F | The shape of the logistic function is linear. |  
+| 4. | T | F | The logistic model describes the probability of disease development, e.g., risk for the disease, for a given set of independent variables. |  
+| 5. | T | F | The logistic model can only be applied to analyze a prospective (or follow-up) study. |  
+| 6. | T | F | Given a fitted logistic model from retrospective (case-control) study, we can estimate the disease risk for a specific individual. |  
+| 7. | T | F | In prospective (follow-up) studies, we can use a fitted logistic model to estimate a risk ratio comparing two groups whenever all the independent variables in the model are specified for both groups. |  
+| 8. | T | F | Given a fitted logistic model from a prospective (follow-up) study, it is not possible to estimate individual risk as the constant term (intercept) cannot be estimated. |  
+| 9. | T | F | Given a fitted logistic model from a retrospective (case-control) study, an odds ratio can be estimated. |  
+| 10. | T | F | Given a fitted logistic model from a retrospective (case-control) study, we can estimate a risk ratio if the rare disease assumption (probability of event is small) is appropriate. |  
+| 11. | T | F | The constant term (intercept) in the logistic model can be interpreted as a baseline log odds for getting the disease. |  
+| 12. | T | F | The coefficient $\beta_j$ in the logistic model can be interpreted as the change in log odds corresponding to a one unit change in the variable $x_j$ that ignores the contribution of other variables. |  
+| 13. | T | F | We can compute an odds ratio for a fitted logistic model by identifying two groups to be compared in terms of the independent variables in the fitted model. |  
+| 14. | T | F | Given a binary independent variable and a model containing only main effect terms, the odds ratio that describes the effect of that variable controlling for the others in the model is given by $e^{\beta_0}$, where $\beta_0$ is the constant parameter (intercept) in the model. |  
+| 15. | T | F | When estimating the parameters of the logistic model, least squares estimation is the preferred method of estimation. |  
+| 16. | T | F | The likelihood function $L(\boldsymbol{\theta})$ represents the joint probability of observing the data that has been collected for analysis. |  
+| 17. | T | F | The maximum likelihood method (MLE) maximizes the function $L(\boldsymbol{\theta})$. |  
+| 18. | T | F | The likelihood function formulae for both the unconditional and conditional logistic regressions for matched case-control studies are the same. | 
+| 19. | T | F | The analysis of deviance (or likelihood ratio test) is the preferred method for testing hypotheses about parameters in the logistic model. |  
+| 20. | T | F | If a likelihood function for a logistic model contains five parameters, then the ML solution optimizes a function with five unknowns using an iterative procedure. |  
+| 21. | T | F | The likelihood of a conditional logistic regression reflects the probability of the observed data configuration relative to the probability of all possible configurations of the data. |  
+| 22. | T | F | The analysis of of deviance (or likelihood ratio test) is a chi-square test that uses the maximized liklihoood value in its computation. |
+| 23. | T | F | The Wald test (or z test) and the likelihood ratio test of the same hypothesis give approximately the same results in large samples. |
+| 24. | T | F | Confidence intervals for ED50 or LD50 estimates obtained from the fit of a logistic model use large sample formulae that involve variances and possibly covariances from the variance–covariance matrix of estimated regression coefficients. | 
+
+
+## Q2. (18 pts) Binomial model
+
+Consider a data set where the outcome is count of coronary heart disease (`chd`) cases. `total` is the total number of study individuals in each predictor profile. The predictors of interest are
+
+| Variable | Type |
+|:-----|:-----|
+| `cat` | binary, 1 = high CAT, 0 = low CAT |
+| `age` | binary, 1 = age > 55, 0 = age $\le 55$ |
+| `ecg` | binary, 1 = abnormal, 0 = normal |
+
+```{r}
+chd <- tibble(
+  cases = c(17, 15, 7, 5, 1, 9, 3, 14),
+  total = c(274, 122, 59, 32, 8, 39, 17, 58),
+  cat = factor(c(0, 0, 0, 0, 1, 1, 1, 1), levels = c(0, 1)),
+  age = factor(c(0, 1, 0, 1, 0, 1, 0, 1), levels = c(0, 1)),
+  ecg = factor(c(0, 0, 1, 1, 0, 0, 1, 1), levels = c(0, 1))
+)
+chd
+```
+
+1. Fit a logistic model (using R) with intercept and predictors `cat`, `age` and `ecg`. 
+
+2. What's the log-likelihood and deviance of the fitted model? 
+
+3. State the hypotheses being tested in a goodness of fit test by the analysis of deviance (or likelihood ratio test) approach. What is the conclusion from a goodness of fit test? 
+
+4. Carry out a goodness of fit test using the Pearson chi-square test. What is the conclusion? 
+
+5. Does this model with three predictors provide a better fit than the intercept only model? 
+
+6. Fit a logistic model with intercept, predictors `cat`, `age` and `ecg`, their pairwise 2-way interactions, and 3-way interaction `cat x age x ecg`. 
+
+7. What is the deviance of the fitted model in the last question? Explain. 
+
+8. Fit an equivalent Bernoulli model using observation weights. (If you don't have time to do this in R, at least describe how to do that.)
+
+## Q3. (8 pts) ROC, sensitivity, specificity
+
+Recall the heart disease data set `wcgs` in ELMR. We model the dependence of disease status `chd` on `height` and number of cigarettes per day `cigs`. Assume we use cut-point of 0.15 in the classification. 
+
+```{r}
+lmod <- glm(chd ~ height + cigs, family = binomial, data = wcgs)
+summary(lmod)
+```
+
+1. Find the number of true positive (TP), false positive (FP), true negatives (TN), and false negatives (FN). 
+
+2. Compute the sensitivity, specificty, and 1 - specificity.
+
+3. Explain what's ROC curve. 
+
+4. Explain what's area under ROC curve and why it's a measure of the classification performance of logistic model.
+
+## Q4. (8 pts) Matched case-control study
+
+Consider a matched pair study (from ELMR) of the relationship between X-ray exposure and childhood acute myeloid leukemia. Matching was done on age, race and county of residence. 
+
+```{r}
+ramlxray <- as_tibble(amlxray) %>%
+  select(ID, disease, Sex, age, Fray, CnRay) %>%
+  mutate(CnRay = unclass(CnRay)) %>%
+  # take out Down symdrome cases
+  filter(!(ID %in% c(7010, 7018, 7066, 7077, 7146, 7176, 7189))) %>%
+  print(width = Inf)
+```
+
+The fitted coefficients are
+```{r}
+clogit(disease ~ Sex + Fray + unclass(CnRay) + strata(ID), data = ramlxray) %>%
+  summary()
+```
+
+1. Explain why the variables `age` and `sex` are not included in the model. 
+
+2. What is the odds ratio for the effect of the father having exposure to X-ray against the father having no exposure to X-ray (variable `Fray`), controlling other predictors. 
+
+3. Explain why the function for fitting a conditional logistic regression is provided by a package for survival analysis. 
+
+4. Explain when should the conditonal logistic regression be preferred over the unconditional logistic regression. 
+
+## Q5. (2 pts) True or false
+
+| No. | | | Statement |
+|:-|:-|:-|:------------------------|
+| 1. | T | F | An outcome variable with categories North, South, East, and West is an ordinal variable. |  
+| 2. | T | F | In a polytomous (or multinomial) logistic regression in which the outcome variable has five levels, there will be four intercepts. |  
+| 3. | T | F | In a polytomous (or multinomial) logistic regression in which the outcome variable has five levels, each independent variable will have one estimated coefficient. |  
+| 4. | T | F | In a polytomous (or multinomial) model, the decision of which outcome category is designated as the reference has no bearing on the parameter estimates since the choice of reference category is arbitrary. |
+
+## Q6. (10 pts) Multinomial model
+
+Suppose the following polytomous (or multinomial) model is specified for assessing the effects of `age` (continuous), `gender` (male = 1, female = 0), `smoke` (smoker = 1, nonsmoker = 0), and hypertension status `hpt` (yes = 1, no = 0) on a disease variable with four outcomes (D = 0 for none, D = 1 for mild, D = 2 for severe, and D = 3 for critical). 
+$$
+\log \left[ \frac{\mathbb{P}(D=g \mid \mathbf{x})}{\mathbb{P}(D=0 \mid \mathbf{x})} \right] = \beta_{g,0} + \text{age} \cdot \beta_{g,\text{age}} + \text{gender} \cdot \beta_{g,\text{gender}} + \text{smoke} \cdot \beta_{g,\text{smoke}} + \text{hpt} \cdot \beta_{g,\text{hpt}},
+$$
+where $g = 1, 2, 3$.
+
+1. What's the total number of parameters in this model?
+
+2. Give an expression for the odds (severe vs. none) for a 40-year-old non-smoking male. 
+
+3. Given an expression for the odds ratio for male vs. female, comparing mild disease to none, while controlling for `age`, `smoke`, and `hpt`. 
+
+4. Describe how you would perform a likelihood ratio test to simultaneously test the significance of the `smoke` and `hpt` coefficients. State the null hypothesis, the test statistic, and the distribution of the test statistic under the null hypothesis. 
+
+5. If we extend the model to allow for interaction between `age` and `gender` and between `smoke` and `gender`, how many additional parameters would be added to the model? 
+
+## Q7. (5 pts) True or false
+
+| No. | | | Statement |
+|:-|:-|:-|:------------------------|
+| 1. | T | F | The disease categories absent, mild, moderate, and severe can be ordinal. |  
+| 2. | T | F | In an ordinal logistic regression (proportional odds model) in which the outcome variable has five levels, there will be four intercepts. |  
+| 3. | T | F | In an ordinal logistic regression in which the outcome variable has five levels, each independent variable will have four estimated coefficients. |
+| 4. | T | F | If the outcome D has seven levels (coded 1, 2,..., 7), an assumption of the proportional odds model is that $\frac{\mathbb{P}(D \le 3)}{\mathbb{P}(D > 3)}$ is assumed equal to $\frac{\mathbb{P}(D \le 5)}{\mathbb{P}(D > 5)}$. |  
+| 5. | T | F | If the outcome D has seven levels (coded 1, 2,..., 7) and a predictor $E$ has two levels (coded 0 and 1), then an assumption of the proportional odds model is that $\frac{\mathbb{P}(D \le 3 \mid E = 1) / \mathbb{P}(D > 3 \mid E = 1)}{\mathbb{P}(D \le 3 \mid E = 0) / \mathbb{P}(D > 3 \mid E = 0)}$ is assumed equal to $\frac{\mathbb{P}(D \le 5 \mid E = 1) / \mathbb{P}(D > 5 \mid E = 1)}{\mathbb{P}(D \le 5 \mid E = 0) / \mathbb{P}(D > 5 \mid E = 0)}$. |  
+| 6. | T | F | If the outcome D has four categories coded $D = 0, 1, 2, 3$, then the log odds of $D \le 2$ is greater than the log odds of $D \le 1$. |  
+| 7. | T | F | Suppose a four level outcome $D$ coded $D = 0, 1, 2, 3$ is recoded $D^* = 1, 2, 7, 29$, then the choice of using $D$ or $D^*$ as the outcome in a proportional odds model has no effect on the parameter estimates as long as the order in the outcome is preserved. |  
+| 8. | T | F | In a GLM, the mean response is modeled as linear with respect to the regression parameters. |  
+| 9. | T | F | In a GLM, a function of the mean response is modeled as linear with respect to the regression parameters. That function is called the link function. | 
+| 10. | T | F | Quasi-likelihood estimates may be obtained even if the distribution of the response variable is unknown. What should be specified is a function relating the variance to the mean response. | 
+
+## Q8. (10 pts) Ordinal logistic model
+
+Consider the model in Q6. This time we treat the outcome as an ordinal variable. 
+$$
+\log \left[ \frac{\mathbb{P}(D \le g \mid \mathbf{x})}{\mathbb{P}(D > g \mid \mathbf{x})} \right] = \theta_{g} - \text{age} \cdot \beta_{\text{age}} - \text{gender} \cdot \beta_{\text{gender}} - \text{smoke} \cdot \beta_{\text{smoke}} - \text{hpt} \cdot \beta_{\text{hpt}},
+$$
+where $g = 1, 2, 3$. 
+
+1. What's the total number of parameters in this model?
+
+2. Give an expression for the odds of a severe or critical outcome $D \ge 2$ for a 40-year-old male smoker without hypertension. 
+
+3. Give an expression for the mild, severe, or critical stage of disease (i.e., $D \ge 1$) comparing hypertensive smokers vs nonhypertensive nonsmokers, controlling for `age` and `gender`. 
+
+4. Give an expression for the odds ratio for critical disease only $D \ge 3$ comparing hypertensive smokers vs nonhypertensive nonsmokers, controlling for `age` and `gender`. 
+
+5. Given an expression for the odds ratio for mild or no disease ($D < 2$) comparing hypertensive smokers vs. nonhypertensive nonsmokers, controlling for `age` and `gender`.
+
+## Q9. (10 pts) GLM
+
+You can use the formulae in lecture notes or homework. 
+
+1. For a GLM with canonical link, explain why the log-likelihood is concave. 
+
+2. For a GLM with canonical link, explain why the Fisher scoring algorithm is the same as the Newton-Raphson algorithm. 
+
+3. Use Poisson regression (with log link) as example. Show that the Fisher scoring algorithm is equivalent to the IRWLS (iteratively reweighted least squares) procedure. Clarify what are the weights and working responses in this case (Poisson regression with canonical link). 
+
+## Q10. (6 pts) Link functions
+
+Write down the (1) names, (2) expressions, and (3) the name of corresponding latent variable distribution of 3 commonly used link functions for a Bernoulli or binomial parameter $p$. 
+
+Example: Identiy link, $\eta = g(p) = p$, corresponds to a uniform distribution for the latent variable.
+
+## Q11. (10 pts) Inverse Gaussian
+
+The inverse Gaussian distribution $IG(\mu, \lambda)$ has density 
+$$
+f(y) = \left( \frac{\lambda}{2 \pi y^3} \right)^{1/2} e^{- \frac{\lambda (y - \mu)^2}{2 \mu^2 y}}, \quad y, \mu, \lambda > 0.
+$$
+
+1. Show that $IG(\mu, \lambda)$ belongs to the exponential family distributions.
+
+2. What is the canonical parameters? 
+
+3. Derive the mean and variance of inverse Gaussian.
+
+4. What is the canonical link function for inverse Gaussian? 
+
+5. Derive the deviance formula for $IG(\mu, \lambda)$.
+
