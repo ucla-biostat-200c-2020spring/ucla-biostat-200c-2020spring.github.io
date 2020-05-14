@@ -202,7 +202,7 @@ which after rearrangement shows
 $$
 \text{logit}(p^\star(\mathbf{x})) = \log \frac{\pi_1}{\pi_0} + \text{logit}(p(\mathbf{x})).
 $$
-In general $\pi_1/\pi_0$ is unknown, therefore we would not be able to estimate intercept $\beta_0$ in a retrospective study. However we can still estimate the relative risk of non-intercept predictors. 
+In general $\pi_1/\pi_0$ is unknown, therefore we would not be able to estimate intercept $\beta_0$ in a retrospective study. However we can still estimate the relative effect, e.g., odds ratio, of non-intercept predictors. 
 
 ## Prediction
 
