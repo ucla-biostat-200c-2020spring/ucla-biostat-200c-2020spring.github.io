@@ -54,7 +54,7 @@ which can be solved to obtain ANOVA estimate
 
 ## Q3. Estimation of random effects
 
-Assume the conditional distribution
+1. Assume the conditional distribution
 $$
 \mathbf{y} \mid \boldsymbol{\gamma} \sim N(\mathbf{X} \boldsymbol{\beta} + \mathbf{Z} \boldsymbol{\gamma}, \sigma^2 \mathbf{I}_n)
 $$
@@ -69,6 +69,8 @@ where $f$ denotes corresponding density. Show that the posterior distribution is
 $$
 \mathbb{E} (\boldsymbol{\gamma} \mid \mathbf{y}) = \boldsymbol{\Sigma} \mathbf{Z} (\mathbf{Z} \boldsymbol{\Sigma} \mathbf{Z}^T + \sigma^2 \mathbf{I})^{-1} (\mathbf{y} - \mathbf{X} \boldsymbol{\beta}).
 $$
+
+2. For the balanced one-way ANOVA random effects model, show that the posterior mean of random effects is always a constant (less than 1) multiplying the corresponding fixed effects estimate.
 
 ## Q4. ELMR Exercise 11.1 (p251)
 
