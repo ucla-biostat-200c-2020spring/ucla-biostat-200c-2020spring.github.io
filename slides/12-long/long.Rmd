@@ -42,7 +42,7 @@ psid %>%
   labs(x = "Year", y = "Income")
 ```
 
-- Income trajectories stratified by sex. We observe men's incomes are generally higher and less variable than women's. Women's income seems to increase quicker than men's. How to test these?
+- Income trajectories stratified by sex. We observe men's incomes are generally higher and less variable than women's. Women's income seems to increase quicker than men's. How to test these hypotheses?
 
 ```{r}
 psid %>%
@@ -111,6 +111,27 @@ confint(mmod, method = "boot")
 ```
 All variance component parameters are significant except for the covariance (correlation) between random intercept and slope. 
 
+- QQ plots shows violation of normal assumption. It suggests other transformation of responses. 
+```{r}
+(diagd <- fortify(mmod))
+diagd %>%
+  ggplot(mapping = aes(sample = .resid)) + 
+  stat_qq() + facet_grid(~sex)
+```
+
+- Residuals vs fitted value plots.
+```{r}
+diagd$edulevel <- cut(psid$educ, 
+                      c(0, 8.5, 12.5, 20), 
+                      labels=c("lessHS", "HS", "moreHS"))
+diagd %>%
+  ggplot(mapping = aes(x = .fitted, y = .resid)) + 
+  geom_point(alpha = 0.3) + 
+  geom_hline(yintercept = 0) + 
+  facet_grid(~ edulevel) + 
+  labs(x = "Fitted", ylab = "Residuals")
+```
+
 ## Repeat measures - `vision` data
 
 - Reponse is `acuity`. Each individual is tested on left and right eyes under 4 powers. 
@@ -168,4 +189,11 @@ KRmodcomp(mmodr, nmodr)
 ```{r}
 mmod <- lmer(acuity ~ power + (1 | subject) + (1 | subject:eye), data = vision)
 confint(mmod, method = "boot")
+```
+
+- Diagnostic plots. 
+```{r}
+qqnorm(ranef(mmodr)$"subject:eye"[[1]], main = "")
+plot(resid(mmodr) ~ fitted(mmodr), xlab = "Fitted", ylab = "Residuals")
+abline(h=0)
 ```

@@ -11,7 +11,7 @@ subtitle: Biostat 200C
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(fig.align = 'center', cache = FALSE)
+knitr::opts_chunk$set(fig.align = 'center', cache = TRUE)
 ```
 
 Display system information and load `tidyverse` and `faraway` packages
@@ -254,7 +254,7 @@ for (i in 1:B) {
   by <- unlist(simulate(nullmod))
   bnull <- lm(by ~ 1)
   #balt  <- refitML(smod, by)
-  balt  <- lmer(by ~ 1 + (1 | operator), pulp, REML = FALSE)
+  balt  <- suppressMessages(lmer(by ~ 1 + (1 | operator), pulp, REML = FALSE))
   lrstat[i] <- as.numeric(2 * (logLik(balt, REML = FALSE) - logLik(bnull)))
 }
 ```
@@ -344,6 +344,21 @@ predict(mmod, newdata = data.frame(operator="a"))
 predict(mmod, re.form = ~ 0)
 ```
 
+## Diagnostics
+
+- Diagnostic plots for random effects usually use the residuals calculated using predicted random effects. These residuals are regarded as estimates of $\epsilon$. 
+
+- QQ-plot.
+```{r}
+qqnorm(residuals(mmod), main="")
+```
+
+- Residual vs fitted.
+```{r}
+plot(fitted(mmod), residuals(mmod), xlab = "Fitted", ylab = "Residuals")
+abline(h=0)
+```
+
 ## Blocks as random effects
 
 - In the `pulp` example, `operator` defines blocks. 
@@ -414,8 +429,8 @@ B <- 1000
 lrstat <- numeric(B)
 for (i in 1:B) {
   ryield <- unlist(simulate(nmod))
-  nmodr <- lmer(ryield ~ 1 + (1 | blend), data = penicillin, REML = FALSE)
-  amodr <- lmer(ryield ~ treat + (1 | blend), data = penicillin, REML = FALSE)
+  nmodr <- suppressMessages(lmer(ryield ~ 1 + (1 | blend), data = penicillin, REML = FALSE))
+  amodr <- suppressMessages(lmer(ryield ~ treat + (1 | blend), data = penicillin, REML = FALSE))
   lrstat[i] <- 2 * (logLik(amodr, REML = FALSE) - logLik(nmodr, REML = FALSE))
 }
 ```
@@ -453,7 +468,7 @@ lrstatf <- numeric(B)
 for (i in 1:B) {
   ryield <- unlist(simulate(nlmod))  
   nlmodr <- lm(ryield ~ treat, data = penicillin)
-  rmodr <- lmer(ryield ~ treat + (1 | blend), data = penicillin, REML = FALSE)
+  rmodr <- suppressMessages(lmer(ryield ~ treat + (1 | blend), data = penicillin, REML = FALSE))
   lrstatf[i] <- 2 * (logLik(rmodr, REML = FALSE) - logLik(nlmodr))
 }
 mean(lrstatf > 3.453634)
