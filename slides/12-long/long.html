@@ -709,7 +709,7 @@ diagd %&gt;%
 y_{ijk} = \mu + p_j + s_i + e_{ik} + \epsilon_{ijk},
 \]</span> where <span class="math inline">\(i=1,\ldots,7\)</span> indexes individuals, <span class="math inline">\(j=1,\ldots,4\)</span> indexes power, and <span class="math inline">\(k=1,2\)</span> indexes eyes. The random effect distributions are <span class="math display">\[
 s_i \sim_{\text{iid}} N(0,\sigma_s^2), \quad e_{ik} \sim_{\text{iid}} N(0,\sigma_e^2) \text{ for fixed } i, \quad \epsilon_{ijk} \sim_{\text{iid}} N(0, \sigma^2).
-\]</span> <span class="math inline">\(\sigma_e^2\)</span> is interpreted as the variance for <code>eyes</code> for a given subject.</li>
+\]</span> <span class="math inline">\(\sigma_e^2\)</span> is interpreted as the variance of acuity between combinations of <code>eyes</code> and <code>subject</code>.</li>
 </ul>
 <pre class="r"><code>mmod &lt;- lmer(acuity ~ power + (1 | subject) + (1 | subject:eye), data = vision)
 summary(mmod)</code></pre>
@@ -756,7 +756,7 @@ KRmodcomp(mmod, nmod)</code></pre>
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <ul>
-<li>If we exclude individual 6, then <code>power</code> becomes significant.</li>
+<li>If we exclude individual 6 left eye at power 6/36, then <code>power</code> becomes significant.</li>
 </ul>
 <pre class="r"><code>mmodr &lt;- lmer(acuity ~ power + (1 | subject) + (1 | subject:eye), data = vision, REML = FALSE, subset = -43)
 nmodr &lt;- lmer(acuity ~ (1 | subject) + (1 | subject:eye), data = vision, REML = FALSE, subset = -43)
@@ -769,7 +769,7 @@ KRmodcomp(mmodr, nmodr)</code></pre>
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <ul>
-<li>To test significance of the variance component parameters,</li>
+<li>To test significance of the variance component parameters by parametric bootstrap.</li>
 </ul>
 <pre class="r"><code>mmod &lt;- lmer(acuity ~ power + (1 | subject) + (1 | subject:eye), data = vision)
 confint(mmod, method = &quot;boot&quot;)</code></pre>

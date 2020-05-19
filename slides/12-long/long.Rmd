@@ -161,7 +161,7 @@ where $i=1,\ldots,7$ indexes individuals, $j=1,\ldots,4$ indexes power, and $k=1
 $$
 s_i \sim_{\text{iid}} N(0,\sigma_s^2), \quad e_{ik} \sim_{\text{iid}} N(0,\sigma_e^2) \text{ for fixed } i, \quad \epsilon_{ijk} \sim_{\text{iid}} N(0, \sigma^2).
 $$
-$\sigma_e^2$ is interpreted as the variance for `eyes` for a given subject.
+$\sigma_e^2$ is interpreted as the variance of acuity between combinations of `eyes` and `subject`.
 
 ```{r}
 mmod <- lmer(acuity ~ power + (1 | subject) + (1 | subject:eye), data = vision)
@@ -176,7 +176,7 @@ nmod <- lmer(acuity ~ (1 | subject) + (1 | subject:eye), data = vision, REML = F
 KRmodcomp(mmod, nmod)
 ```
 
-- If we exclude individual 6, then `power` becomes significant.
+- If we exclude individual 6 left eye at power 6/36, then `power` becomes significant.
 
 ```{r}
 mmodr <- lmer(acuity ~ power + (1 | subject) + (1 | subject:eye), data = vision, REML = FALSE, subset = -43)
@@ -184,7 +184,7 @@ nmodr <- lmer(acuity ~ (1 | subject) + (1 | subject:eye), data = vision, REML = 
 KRmodcomp(mmodr, nmodr)
 ```
 
-- To test significance of the variance component parameters,
+- To test significance of the variance component parameters by parametric bootstrap.
 
 ```{r}
 mmod <- lmer(acuity ~ power + (1 | subject) + (1 | subject:eye), data = vision)
