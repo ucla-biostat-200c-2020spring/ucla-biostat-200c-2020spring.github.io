@@ -37,7 +37,7 @@ where $\mu_i = \mathbb{E} Y_i$. Now let
 $$
 \eta_i = \mathbf{x}_i^T \boldsymbol{\beta} + \mathbf{z}_i^T \boldsymbol{\gamma},
 $$
-where $\boldsymbol{\beta}$ is the fixed effects and $\boldsymbol{\gamma}$ is the random effects with density $h(\gamma \mid \boldsymbol{\Sigma})$. (Typically we assume $\boldsymbol{\Sigma}$.) Then the likelihood is
+where $\boldsymbol{\beta}$ is the fixed effects and $\boldsymbol{\gamma}$ is the random effects with density $h(\gamma \mid \boldsymbol{\Sigma})$. (Typically we assume multivariate normal with mean 0 and covariance $\boldsymbol{\Sigma}$.) Then the likelihood is
 $$
 L(\boldsymbol{\beta}, \phi, \boldsymbol{\Sigma}) = \prod_{i=1}^n \int f(y_i \mid \boldsymbol{\beta}, \phi, \boldsymbol{\Sigma}) h(\boldsymbol{\gamma} \mid \boldsymbol{\Sigma}) \, d \boldsymbol{\gamma}
 $$
@@ -49,11 +49,11 @@ This model, combining GLM and mixed effects model, is called the **generalized l
 
 ## Overview of estimation and inference methods
 
-- Estimation and inference of GLMM has been active research. We give an overview of a few commonly used methods here.
+- Estimation and inference of GLMM has been active research. We give an overview of a few commonly used methods
 
-- **Maximum likelihood estimate (MLE)** is obtained by maximizing the log-likelihood function. However, each iteration of the optimization algorithm needs to evaluate numerical integration, which quickly becomes infeasible when the dimension of random effects $\boldsymbol{\gamma}$ is large. 
+- **Maximum likelihood estimate (MLE)** is obtained by maximizing the log-likelihood function. However, each iteration of the optimization algorithm needs to evaluate numerical integration, which quickly becomes infeasible when the dimension of random effects $\boldsymbol{\gamma}$ is large.
 
-    - **Gauss-Hermite quadrature** can be used for numerical integration. It approximates the integral by a weighted sum of integrands at different knots. 
+    - **Gauss-Hermite quadrature** can be used for numerical integration. It approximates the integral by a weighted sum of integrands at different knots. The more knots, the more accurate the approximation, at more computational expense. 
     
     - **Laplace approximation** is a special case of Gauss-Hermite quadrature with only one knot. It is less accurate than Guass-Hermite quadrature but computationally cheaper. 
     
@@ -63,7 +63,9 @@ This model, combining GLM and mixed effects model, is called the **generalized l
 $$
   \mathbf{z}^{(t)} = \boldsymbol{\eta}^{(t)} + (\mathbf{W}^{(t)})^{-1} (\mathbf{y} - \widehat{\boldsymbol{\mu}}^{(t)}).
 $$
-It can be adapted to the mixed effects model. PQL has computational advantage but generally consider less accurate than other approaches. 
+It can be adapted to the mixed effects model. PQL has computational advantage but generally considered less accurate than other approaches. 
+
+- **Generalized estimation equations (GEE)**. To be discussed later.
 
 ## Binary response example
 
@@ -73,8 +75,9 @@ It can be adapted to the mixed effects model. PQL has computational advantage bu
     - Each subject is tested twice on a combination of `surface` and `vision`. 12 measurements per subject.  
 
 ```{r}
-(ctsib <- as_tibble(ctsib) %>%
-   mutate(stable = ifelse(CTSIB == 1, 1, 0)))
+ctsib <- as_tibble(ctsib) %>%
+  mutate(stable = ifelse(CTSIB == 1, 1, 0)) %>%
+  print(n = 24)
 summary(ctsib)
 ```
 
@@ -230,7 +233,7 @@ summary(modgh)
 \begin{eqnarray*}
 \mathbb{E} \mathbf{Y}_i &=& \boldsymbol{\mu}_i \\
 g(\boldsymbol{\mu}_i) &=& \mathbf{X}_i \boldsymbol{\beta} \\
-V(\mathbf{Y}_i) &=& \phi \mathbf{A}_i^{1/2} \mathbf{R}_i(\boldsymbol{\alpha}) \mathbf{A}_i^{1/2},
+\mathbf{V}_i &=& \text{Var}(\mathbf{Y}_i) = \phi \mathbf{A}_i^{1/2} \mathbf{R}_i(\boldsymbol{\alpha}) \mathbf{A}_i^{1/2},
 \end{eqnarray*}
 where $\mathbf{A}_i = \text{diag}(a(\boldsymbol{\mu}))$ captures the individual variances and $\mathbf{R}_i(\boldsymbol{\alpha})$ is a **working correlation matrix**. 
 

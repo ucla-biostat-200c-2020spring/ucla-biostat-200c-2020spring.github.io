@@ -421,7 +421,7 @@ f(y_i \mid \theta_i, \phi) = \exp \left[ \frac{y \theta_i - b(\theta_i)}{a(\phi)
 \theta_i = g(\mu_i) = \eta_i,
 \]</span> where <span class="math inline">\(\mu_i = \mathbb{E} Y_i\)</span>. Now let <span class="math display">\[
 \eta_i = \mathbf{x}_i^T \boldsymbol{\beta} + \mathbf{z}_i^T \boldsymbol{\gamma},
-\]</span> where <span class="math inline">\(\boldsymbol{\beta}\)</span> is the fixed effects and <span class="math inline">\(\boldsymbol{\gamma}\)</span> is the random effects with density <span class="math inline">\(h(\gamma \mid \boldsymbol{\Sigma})\)</span>. (Typically we assume <span class="math inline">\(\boldsymbol{\Sigma}\)</span>.) Then the likelihood is <span class="math display">\[
+\]</span> where <span class="math inline">\(\boldsymbol{\beta}\)</span> is the fixed effects and <span class="math inline">\(\boldsymbol{\gamma}\)</span> is the random effects with density <span class="math inline">\(h(\gamma \mid \boldsymbol{\Sigma})\)</span>. (Typically we assume multivariate normal with mean 0 and covariance <span class="math inline">\(\boldsymbol{\Sigma}\)</span>.) Then the likelihood is <span class="math display">\[
 L(\boldsymbol{\beta}, \phi, \boldsymbol{\Sigma}) = \prod_{i=1}^n \int f(y_i \mid \boldsymbol{\beta}, \phi, \boldsymbol{\Sigma}) h(\boldsymbol{\gamma} \mid \boldsymbol{\Sigma}) \, d \boldsymbol{\gamma}
 \]</span> and the log-likelihood is <span class="math display">\[
 \ell(\boldsymbol{\beta}, \phi, \boldsymbol{\Sigma}) = \sum_{i=1}^n \log \int f(y_i \mid \boldsymbol{\beta}, \phi, \boldsymbol{\Sigma}) h(\boldsymbol{\gamma} \mid \boldsymbol{\Sigma}) \, d \boldsymbol{\gamma}.
@@ -431,16 +431,17 @@ L(\boldsymbol{\beta}, \phi, \boldsymbol{\Sigma}) = \prod_{i=1}^n \int f(y_i \mid
 <div id="overview-of-estimation-and-inference-methods" class="section level2">
 <h2>Overview of estimation and inference methods</h2>
 <ul>
-<li><p>Estimation and inference of GLMM has been active research. We give an overview of a few commonly used methods here.</p></li>
+<li><p>Estimation and inference of GLMM has been active research. We give an overview of a few commonly used methods</p></li>
 <li><p><strong>Maximum likelihood estimate (MLE)</strong> is obtained by maximizing the log-likelihood function. However, each iteration of the optimization algorithm needs to evaluate numerical integration, which quickly becomes infeasible when the dimension of random effects <span class="math inline">\(\boldsymbol{\gamma}\)</span> is large.</p>
 <ul>
-<li><p><strong>Gauss-Hermite quadrature</strong> can be used for numerical integration. It approximates the integral by a weighted sum of integrands at different knots.</p></li>
+<li><p><strong>Gauss-Hermite quadrature</strong> can be used for numerical integration. It approximates the integral by a weighted sum of integrands at different knots. The more knots, the more accurate the approximation, at more computational expense.</p></li>
 <li><p><strong>Laplace approximation</strong> is a special case of Gauss-Hermite quadrature with only one knot. It is less accurate than Guass-Hermite quadrature but computationally cheaper.</p></li>
 </ul></li>
 <li><p><strong>Bayesian method</strong> is another approach for estimation and inference of GLMM. It’s not covered in this course due to time constraint. Interested students can study ELMR Chapter 12.</p></li>
 <li><p><strong>Penalized quasi-likelihood (PQL)</strong>. In the IRWLS (iteratively reweighted least squares) procedure for estimating the GLM, each iteration uses the pseudo-response or working response <span class="math display">\[
 \mathbf{z}^{(t)} = \boldsymbol{\eta}^{(t)} + (\mathbf{W}^{(t)})^{-1} (\mathbf{y} - \widehat{\boldsymbol{\mu}}^{(t)}).
-\]</span> It can be adapted to the mixed effects model. PQL has computational advantage but generally consider less accurate than other approaches.</p></li>
+\]</span> It can be adapted to the mixed effects model. PQL has computational advantage but generally considered less accurate than other approaches.</p></li>
+<li><p><strong>Generalized estimation equations (GEE)</strong>. To be discussed later.</p></li>
 </ul>
 </div>
 <div id="binary-response-example" class="section level2">
@@ -455,8 +456,9 @@ L(\boldsymbol{\beta}, \phi, \boldsymbol{\Sigma}) = \prod_{i=1}^n \int f(y_i \mid
 <li>Each subject is tested twice on a combination of <code>surface</code> and <code>vision</code>. 12 measurements per subject.</li>
 </ul></li>
 </ul>
-<pre class="r"><code>(ctsib &lt;- as_tibble(ctsib) %&gt;%
-   mutate(stable = ifelse(CTSIB == 1, 1, 0)))</code></pre>
+<pre class="r"><code>ctsib &lt;- as_tibble(ctsib) %&gt;%
+  mutate(stable = ifelse(CTSIB == 1, 1, 0)) %&gt;%
+  print(n = 24)</code></pre>
 <pre><code>## # A tibble: 480 x 9
 ##    Subject Sex     Age Height Weight Surface Vision CTSIB stable
 ##      &lt;int&gt; &lt;fct&gt; &lt;int&gt;  &lt;dbl&gt;  &lt;dbl&gt; &lt;fct&gt;   &lt;fct&gt;  &lt;int&gt;  &lt;dbl&gt;
@@ -470,7 +472,21 @@ L(\boldsymbol{\beta}, \phi, \boldsymbol{\Sigma}) = \prod_{i=1}^n \int f(y_i \mid
 ##  8       1 male     22    176   68.2 foam    open       2      0
 ##  9       1 male     22    176   68.2 foam    closed     2      0
 ## 10       1 male     22    176   68.2 foam    closed     2      0
-## # … with 470 more rows</code></pre>
+## 11       1 male     22    176   68.2 foam    dome       2      0
+## 12       1 male     22    176   68.2 foam    dome       2      0
+## 13       2 male     22    181   67.6 norm    open       1      1
+## 14       2 male     22    181   67.6 norm    open       1      1
+## 15       2 male     22    181   67.6 norm    closed     2      0
+## 16       2 male     22    181   67.6 norm    closed     2      0
+## 17       2 male     22    181   67.6 norm    dome       2      0
+## 18       2 male     22    181   67.6 norm    dome       2      0
+## 19       2 male     22    181   67.6 foam    open       2      0
+## 20       2 male     22    181   67.6 foam    open       2      0
+## 21       2 male     22    181   67.6 foam    closed     3      0
+## 22       2 male     22    181   67.6 foam    closed     3      0
+## 23       2 male     22    181   67.6 foam    dome       3      0
+## 24       2 male     22    181   67.6 foam    dome       3      0
+## # … with 456 more rows</code></pre>
 <pre class="r"><code>summary(ctsib)</code></pre>
 <pre><code>##     Subject          Sex           Age            Height          Weight      
 ##  Min.   : 1.00   female:240   Min.   :18.00   Min.   :142.0   Min.   : 44.20  
@@ -893,7 +909,7 @@ summary(modgh)</code></pre>
 <li><p>Let <span class="math inline">\(\mathbf{Y}_i\)</span> be the response vector of <span class="math inline">\(i\)</span>-th individual. <span class="math display">\[\begin{eqnarray*}
 \mathbb{E} \mathbf{Y}_i &amp;=&amp; \boldsymbol{\mu}_i \\
 g(\boldsymbol{\mu}_i) &amp;=&amp; \mathbf{X}_i \boldsymbol{\beta} \\
-V(\mathbf{Y}_i) &amp;=&amp; \phi \mathbf{A}_i^{1/2} \mathbf{R}_i(\boldsymbol{\alpha}) \mathbf{A}_i^{1/2},
+\mathbf{V}_i &amp;=&amp; \text{Var}(\mathbf{Y}_i) = \phi \mathbf{A}_i^{1/2} \mathbf{R}_i(\boldsymbol{\alpha}) \mathbf{A}_i^{1/2},
 \end{eqnarray*}\]</span> where <span class="math inline">\(\mathbf{A}_i = \text{diag}(a(\boldsymbol{\mu}))\)</span> captures the individual variances and <span class="math inline">\(\mathbf{R}_i(\boldsymbol{\alpha})\)</span> is a <strong>working correlation matrix</strong>.</p></li>
 <li><p>Given estimates of <span class="math inline">\(\phi\)</span> and <span class="math inline">\(\boldsymbol{\alpha}\)</span>, we solve the estimation equation <span class="math display">\[
 \sum_i [D_{\boldsymbol{\beta}} \boldsymbol{\mu}_i(\boldsymbol{\beta})]^T \mathbf{V}_i^{-1}(\mathbf{Y}_i - \boldsymbol{\mu}_i) = \mathbf{0}.
