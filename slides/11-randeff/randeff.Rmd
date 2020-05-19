@@ -311,7 +311,7 @@ f(\boldsymbol{\gamma} \mid \mathbf{y}) &=& \frac{f(\mathbf{y} \mid \boldsymbol{\
 \end{eqnarray*}
 is a multivariate normal with mean (show in **HW4**)
 $$
-\mathbb{E} (\boldsymbol{\gamma} \mid \mathbf{y}) = \boldsymbol{\Sigma} \mathbf{Z} (\mathbf{Z} \boldsymbol{\Sigma} \mathbf{Z}^T + \sigma^2 \mathbf{I})^{-1} (\mathbf{y} - \mathbf{X} \boldsymbol{\beta}).
+\mathbb{E} (\boldsymbol{\gamma} \mid \mathbf{y}) = \boldsymbol{\Sigma} \mathbf{Z}^T (\mathbf{Z} \boldsymbol{\Sigma} \mathbf{Z}^T + \sigma^2 \mathbf{I})^{-1} (\mathbf{y} - \mathbf{X} \boldsymbol{\beta}).
 $$
 
 - We can use this posterior mean to estimate random effects. For the `pulp` data, estimate of random effects is obtained by

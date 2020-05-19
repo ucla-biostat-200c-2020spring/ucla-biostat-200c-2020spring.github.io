@@ -818,7 +818,7 @@ exactLRT(smod, nullmod)</code></pre>
 f(\boldsymbol{\gamma} \mid \mathbf{y}) &amp;=&amp; \frac{f(\mathbf{y} \mid \boldsymbol{\gamma}) \times f(\boldsymbol{\gamma})}{f(\mathbf{y})} \\
 &amp;=&amp; ...
 \end{eqnarray*}\]</span> is a multivariate normal with mean (show in <strong>HW4</strong>) <span class="math display">\[
-\mathbb{E} (\boldsymbol{\gamma} \mid \mathbf{y}) = \boldsymbol{\Sigma} \mathbf{Z} (\mathbf{Z} \boldsymbol{\Sigma} \mathbf{Z}^T + \sigma^2 \mathbf{I})^{-1} (\mathbf{y} - \mathbf{X} \boldsymbol{\beta}).
+\mathbb{E} (\boldsymbol{\gamma} \mid \mathbf{y}) = \boldsymbol{\Sigma} \mathbf{Z}^T (\mathbf{Z} \boldsymbol{\Sigma} \mathbf{Z}^T + \sigma^2 \mathbf{I})^{-1} (\mathbf{y} - \mathbf{X} \boldsymbol{\beta}).
 \]</span></p></li>
 <li><p>We can use this posterior mean to estimate random effects. For the <code>pulp</code> data, estimate of random effects is obtained by</p></li>
 </ul>
