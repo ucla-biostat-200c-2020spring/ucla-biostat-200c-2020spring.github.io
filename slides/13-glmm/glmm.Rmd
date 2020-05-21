@@ -29,7 +29,7 @@ library(faraway)
 $$
   f(y_i \mid \theta_i, \phi) = \exp \left[ \frac{y \theta_i - b(\theta_i)}{a(\phi)} + c(y_i, \phi) \right].
 $$
-If we use the canonical link, then
+If we use the **canonical link**, then
 $$
 \theta_i = g(\mu_i) = \eta_i,
 $$
@@ -39,21 +39,21 @@ $$
 $$
 where $\boldsymbol{\beta}$ is the fixed effects and $\boldsymbol{\gamma}$ is the random effects with density $h(\gamma \mid \boldsymbol{\Sigma})$. (Typically we assume multivariate normal with mean 0 and covariance $\boldsymbol{\Sigma}$.) Then the likelihood is
 $$
-L(\boldsymbol{\beta}, \phi, \boldsymbol{\Sigma}) = \prod_{i=1}^n \int f(y_i \mid \boldsymbol{\beta}, \phi, \boldsymbol{\Sigma}) h(\boldsymbol{\gamma} \mid \boldsymbol{\Sigma}) \, d \boldsymbol{\gamma}
+L(\boldsymbol{\beta}, \phi, \boldsymbol{\Sigma}) = \prod_{i=1}^n \int f(y_i \mid \boldsymbol{\beta}, \phi, \boldsymbol{\gamma}) h(\boldsymbol{\gamma} \mid \boldsymbol{\Sigma}) \, d \boldsymbol{\gamma}
 $$
 and the log-likelihood is
 $$
-\ell(\boldsymbol{\beta}, \phi, \boldsymbol{\Sigma}) = \sum_{i=1}^n \log \int f(y_i \mid \boldsymbol{\beta}, \phi, \boldsymbol{\Sigma}) h(\boldsymbol{\gamma} \mid \boldsymbol{\Sigma}) \, d \boldsymbol{\gamma}.
+\ell(\boldsymbol{\beta}, \phi, \boldsymbol{\Sigma}) = \sum_{i=1}^n \log \int f(y_i \mid \boldsymbol{\beta}, \phi, \boldsymbol{\gamma}) h(\boldsymbol{\gamma} \mid \boldsymbol{\Sigma}) \, d \boldsymbol{\gamma}.
 $$
 This model, combining GLM and mixed effects model, is called the **generalized linear mixed effects model (GLMM)**.
 
 ## Overview of estimation and inference methods
 
-- Estimation and inference of GLMM has been active research. We give an overview of a few commonly used methods
+- Estimation and inference of GLMM has been active research. We give an overview of a few commonly used methods.
 
 - **Maximum likelihood estimate (MLE)** is obtained by maximizing the log-likelihood function. However, each iteration of the optimization algorithm needs to evaluate numerical integration, which quickly becomes infeasible when the dimension of random effects $\boldsymbol{\gamma}$ is large.
 
-    - **Gauss-Hermite quadrature** can be used for numerical integration. It approximates the integral by a weighted sum of integrands at different knots. The more knots, the more accurate the approximation, at more computational expense. 
+    - **Gauss-Hermite quadrature** can be used for numerical integration. It approximates the integral by a weighted sum of integrands at different knots. The more knots, the more accurate the approximation, but at higher computational expense. 
     
     - **Laplace approximation** is a special case of Gauss-Hermite quadrature with only one knot. It is less accurate than Guass-Hermite quadrature but computationally cheaper. 
     
@@ -114,7 +114,7 @@ gf <- glm(stable ~ Sex + Age + Height + Weight + Surface + Vision,
 summary(gf)
 ```
 
-- GLMM analysis. We treat subjects as random. Estimation by **Laplace approximation**.
+- GLMM analysis. We treat subjects as random. First, estimation by **Laplace approximation**.
 
 ```{r}
 library(lme4)
@@ -213,6 +213,7 @@ modglm <- glm(seizures ~ offset(log(timeadj)) + expind + treat + I(expind * trea
 summary(modglm)
 ```
 
+
 - GLMM analysis by Gauss-Hermite quadrature.
 
 ```{r}
@@ -237,7 +238,32 @@ g(\boldsymbol{\mu}_i) &=& \mathbf{X}_i \boldsymbol{\beta} \\
 \end{eqnarray*}
 where $\mathbf{A}_i = \text{diag}(a(\boldsymbol{\mu}))$ captures the individual variances and $\mathbf{R}_i(\boldsymbol{\alpha})$ is a **working correlation matrix**. 
 
-- Given estimates of $\phi$ and $\boldsymbol{\alpha}$, we solve the estimation equation
+- Commonly used working correlation are
+
+    - compound symmetry, or equicorrelation, or exchangeable correlation:
+    $$
+    \mathbf{R}(\rho) = \begin{pmatrix}
+    1 & \rho & \cdots & \rho \\
+    \rho & 1 & & \rho \\
+    \vdots & & \ddots & \vdots \\
+    \rho & \rho & \cdots & 1
+    \end{pmatrix}
+    $$
+    
+    - Autoregressive model:
+    $$
+    \mathbf{R}(\rho) = \begin{pmatrix}
+    1 & \rho & \rho^2 & \cdots & \rho^{n-1} \\
+    \rho & 1 & \rho &  & \rho^{n-2} \\
+    \rho^2 & \rho & 1 & & \vdots \\
+    \vdots & & & \ddots & \\
+    \rho^{n-1} & \cdots & & \rho & 1
+    \end{pmatrix}
+    $$
+    
+    - Unstructured correlation matrix
+
+- Given estimates of $\phi$ and $\boldsymbol{\alpha}$, we solve the **estimation equation**
 $$
 \sum_i [D_{\boldsymbol{\beta}} \boldsymbol{\mu}_i(\boldsymbol{\beta})]^T \mathbf{V}_i^{-1}(\mathbf{Y}_i - \boldsymbol{\mu}_i) = \mathbf{0}.
 $$
@@ -252,7 +278,7 @@ modgeep <- geeglm(stable    ~ Sex + Age + Height + Weight + Surface + Vision,
                   corstr    = "exchangeable",
                   scale.fix = TRUE,
                   data      = ctsib,
-                  family    = binomial)
+                  family    = binomial(link = "logit"))
 summary(modgeep)
 ```
 

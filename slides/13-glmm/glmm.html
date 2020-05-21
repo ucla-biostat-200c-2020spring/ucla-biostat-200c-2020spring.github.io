@@ -417,24 +417,24 @@ summary {
 <li><p>So far we studied linear mixed models (LMM), where the responses are continuous and normally distributed. It is natural to extend LMM to handle nonnormally distributed responses.</p></li>
 <li><p>Recall that, in GLM, the distribution of <span class="math inline">\(Y_i\)</span> is from the exponential familty of distributions of form <span class="math display">\[
 f(y_i \mid \theta_i, \phi) = \exp \left[ \frac{y \theta_i - b(\theta_i)}{a(\phi)} + c(y_i, \phi) \right].
-\]</span> If we use the canonical link, then <span class="math display">\[
+\]</span> If we use the <strong>canonical link</strong>, then <span class="math display">\[
 \theta_i = g(\mu_i) = \eta_i,
 \]</span> where <span class="math inline">\(\mu_i = \mathbb{E} Y_i\)</span>. Now let <span class="math display">\[
 \eta_i = \mathbf{x}_i^T \boldsymbol{\beta} + \mathbf{z}_i^T \boldsymbol{\gamma},
 \]</span> where <span class="math inline">\(\boldsymbol{\beta}\)</span> is the fixed effects and <span class="math inline">\(\boldsymbol{\gamma}\)</span> is the random effects with density <span class="math inline">\(h(\gamma \mid \boldsymbol{\Sigma})\)</span>. (Typically we assume multivariate normal with mean 0 and covariance <span class="math inline">\(\boldsymbol{\Sigma}\)</span>.) Then the likelihood is <span class="math display">\[
-L(\boldsymbol{\beta}, \phi, \boldsymbol{\Sigma}) = \prod_{i=1}^n \int f(y_i \mid \boldsymbol{\beta}, \phi, \boldsymbol{\Sigma}) h(\boldsymbol{\gamma} \mid \boldsymbol{\Sigma}) \, d \boldsymbol{\gamma}
+L(\boldsymbol{\beta}, \phi, \boldsymbol{\Sigma}) = \prod_{i=1}^n \int f(y_i \mid \boldsymbol{\beta}, \phi, \boldsymbol{\gamma}) h(\boldsymbol{\gamma} \mid \boldsymbol{\Sigma}) \, d \boldsymbol{\gamma}
 \]</span> and the log-likelihood is <span class="math display">\[
-\ell(\boldsymbol{\beta}, \phi, \boldsymbol{\Sigma}) = \sum_{i=1}^n \log \int f(y_i \mid \boldsymbol{\beta}, \phi, \boldsymbol{\Sigma}) h(\boldsymbol{\gamma} \mid \boldsymbol{\Sigma}) \, d \boldsymbol{\gamma}.
+\ell(\boldsymbol{\beta}, \phi, \boldsymbol{\Sigma}) = \sum_{i=1}^n \log \int f(y_i \mid \boldsymbol{\beta}, \phi, \boldsymbol{\gamma}) h(\boldsymbol{\gamma} \mid \boldsymbol{\Sigma}) \, d \boldsymbol{\gamma}.
 \]</span> This model, combining GLM and mixed effects model, is called the <strong>generalized linear mixed effects model (GLMM)</strong>.</p></li>
 </ul>
 </div>
 <div id="overview-of-estimation-and-inference-methods" class="section level2">
 <h2>Overview of estimation and inference methods</h2>
 <ul>
-<li><p>Estimation and inference of GLMM has been active research. We give an overview of a few commonly used methods</p></li>
+<li><p>Estimation and inference of GLMM has been active research. We give an overview of a few commonly used methods.</p></li>
 <li><p><strong>Maximum likelihood estimate (MLE)</strong> is obtained by maximizing the log-likelihood function. However, each iteration of the optimization algorithm needs to evaluate numerical integration, which quickly becomes infeasible when the dimension of random effects <span class="math inline">\(\boldsymbol{\gamma}\)</span> is large.</p>
 <ul>
-<li><p><strong>Gauss-Hermite quadrature</strong> can be used for numerical integration. It approximates the integral by a weighted sum of integrands at different knots. The more knots, the more accurate the approximation, at more computational expense.</p></li>
+<li><p><strong>Gauss-Hermite quadrature</strong> can be used for numerical integration. It approximates the integral by a weighted sum of integrands at different knots. The more knots, the more accurate the approximation, but at higher computational expense.</p></li>
 <li><p><strong>Laplace approximation</strong> is a special case of Gauss-Hermite quadrature with only one knot. It is less accurate than Guass-Hermite quadrature but computationally cheaper.</p></li>
 </ul></li>
 <li><p><strong>Bayesian method</strong> is another approach for estimation and inference of GLMM. It’s not covered in this course due to time constraint. Interested students can study ELMR Chapter 12.</p></li>
@@ -565,7 +565,7 @@ summary(gf)</code></pre>
 ## 
 ## Number of Fisher Scoring iterations: 6</code></pre>
 <ul>
-<li>GLMM analysis. We treat subjects as random. Estimation by <strong>Laplace approximation</strong>.</li>
+<li>GLMM analysis. We treat subjects as random. First, estimation by <strong>Laplace approximation</strong>.</li>
 </ul>
 <pre class="r"><code>library(lme4)</code></pre>
 <pre><code>## Loading required package: Matrix</code></pre>
@@ -911,29 +911,46 @@ summary(modgh)</code></pre>
 g(\boldsymbol{\mu}_i) &amp;=&amp; \mathbf{X}_i \boldsymbol{\beta} \\
 \mathbf{V}_i &amp;=&amp; \text{Var}(\mathbf{Y}_i) = \phi \mathbf{A}_i^{1/2} \mathbf{R}_i(\boldsymbol{\alpha}) \mathbf{A}_i^{1/2},
 \end{eqnarray*}\]</span> where <span class="math inline">\(\mathbf{A}_i = \text{diag}(a(\boldsymbol{\mu}))\)</span> captures the individual variances and <span class="math inline">\(\mathbf{R}_i(\boldsymbol{\alpha})\)</span> is a <strong>working correlation matrix</strong>.</p></li>
-<li><p>Given estimates of <span class="math inline">\(\phi\)</span> and <span class="math inline">\(\boldsymbol{\alpha}\)</span>, we solve the estimation equation <span class="math display">\[
+<li><p>Commonly used working correlation are</p>
+<ul>
+<li><p>compound symmetry, or equicorrelation, or exchangeable correlation: <span class="math display">\[
+  \mathbf{R}(\rho) = \begin{pmatrix}
+  1 &amp; \rho &amp; \cdots &amp; \rho \\
+  \rho &amp; 1 &amp; &amp; \rho \\
+  \vdots &amp; &amp; \ddots &amp; \vdots \\
+  \rho &amp; \rho &amp; \cdots &amp; 1
+  \end{pmatrix}
+  \]</span></p></li>
+<li><p>Autoregressive model: <span class="math display">\[
+  \mathbf{R}(\rho) = \begin{pmatrix}
+  1 &amp; \rho &amp; \rho^2 &amp; \cdots &amp; \rho^{n-1} \\
+  \rho &amp; 1 &amp; \rho &amp;  &amp; \rho^{n-2} \\
+  \rho^2 &amp; \rho &amp; 1 &amp; &amp; \vdots \\
+  \vdots &amp; &amp; &amp; \ddots &amp; \\
+  \rho^{n-1} &amp; \cdots &amp; &amp; \rho &amp; 1
+  \end{pmatrix}
+  \]</span></p></li>
+<li><p>Unstructured correlation matrix</p></li>
+</ul></li>
+<li><p>Given estimates of <span class="math inline">\(\phi\)</span> and <span class="math inline">\(\boldsymbol{\alpha}\)</span>, we solve the <strong>estimation equation</strong> <span class="math display">\[
 \sum_i [D_{\boldsymbol{\beta}} \boldsymbol{\mu}_i(\boldsymbol{\beta})]^T \mathbf{V}_i^{-1}(\mathbf{Y}_i - \boldsymbol{\mu}_i) = \mathbf{0}.
 \]</span></p></li>
 <li><p>Let’s revisit the <code>ctsib</code> (stability) data set. We use the exchangeable correlation, or equivalently, compound symmetry. Standard errors and Wald test are constructed using the sandwich estimators. <span class="math inline">\(\boldsymbol{\beta}\)</span> estimates in GEE are about half the size of those from GLMM.</p></li>
 </ul>
-<pre class="r"><code>library(geepack)</code></pre>
-<pre><code>## 
-## Attaching package: 'geepack'</code></pre>
-<pre><code>## The following object is masked from 'package:faraway':
-## 
-##     ohio</code></pre>
-<pre class="r"><code>modgeep &lt;- geeglm(stable    ~ Sex + Age + Height + Weight + Surface + Vision,
+<pre class="r"><code>library(geepack)
+
+modgeep &lt;- geeglm(stable    ~ Sex + Age + Height + Weight + Surface + Vision,
                   id        = Subject, 
                   corstr    = &quot;exchangeable&quot;,
                   scale.fix = TRUE,
                   data      = ctsib,
-                  family    = binomial)
+                  family    = binomial(link = &quot;logit&quot;))
 summary(modgeep)</code></pre>
 <pre><code>## 
 ## Call:
 ## geeglm(formula = stable ~ Sex + Age + Height + Weight + Surface + 
-##     Vision, family = binomial, data = ctsib, id = Subject, corstr = &quot;exchangeable&quot;, 
-##     scale.fix = TRUE)
+##     Vision, family = binomial(link = &quot;logit&quot;), data = ctsib, 
+##     id = Subject, corstr = &quot;exchangeable&quot;, scale.fix = TRUE)
 ## 
 ##  Coefficients:
 ##             Estimate  Std.err   Wald Pr(&gt;|W|)    
@@ -974,11 +991,11 @@ summary(modgeep)</code></pre>
 ##     49), id = id, corstr = &quot;ar1&quot;)
 ## 
 ##  Coefficients:
-##                   Estimate  Std.err   Wald Pr(&gt;|W|)    
-## (Intercept)        1.31383  0.16159 66.103 4.44e-16 ***
-## expind             0.15094  0.11077  1.857   0.1730    
-## treat             -0.07973  0.19831  0.162   0.6877    
-## I(expind * treat) -0.39872  0.17454  5.218   0.0223 *  
+##                   Estimate Std.err  Wald Pr(&gt;|W|)    
+## (Intercept)         1.3138  0.1616 66.10  4.4e-16 ***
+## expind              0.1509  0.1108  1.86    0.173    
+## treat              -0.0797  0.1983  0.16    0.688    
+## I(expind * treat)  -0.3987  0.1745  5.22    0.022 *  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
@@ -986,12 +1003,12 @@ summary(modgeep)</code></pre>
 ## Estimated Scale Parameters:
 ## 
 ##             Estimate Std.err
-## (Intercept)    10.61    2.35
+## (Intercept)     10.6    2.35
 ##   Link = identity 
 ## 
 ## Estimated Correlation Parameters:
 ##       Estimate Std.err
-## alpha   0.7831 0.05192
+## alpha    0.783  0.0519
 ## Number of clusters:   58  Maximum cluster size: 5</code></pre>
 </div>
 
