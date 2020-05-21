@@ -25,7 +25,7 @@ library(faraway)
 
 - So far we studied linear mixed models (LMM), where the responses are continuous and normally distributed. It is natural to extend LMM to handle nonnormally distributed responses. 
 
-- Recall that, in GLM, the distribution of $Y_i$ is from the exponential familty of distributions of form
+- Recall that, in GLM, the distribution of $Y_i$ is from the exponential family of distributions of form
 $$
   f(y_i \mid \theta_i, \phi) = \exp \left[ \frac{y \theta_i - b(\theta_i)}{a(\phi)} + c(y_i, \phi) \right].
 $$
