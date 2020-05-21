@@ -168,21 +168,48 @@ mmod <- lmer(acuity ~ power + (1 | subject) + (1 | subject:eye), data = vision)
 summary(mmod)
 ```
 
+### Test fixed effects
+
 - To test the fixed effect `power`, we can use the Kenward-Roger adjusted F-test. We find the `power` is not significant at the 0.05 level. 
 
 ```{r}
-mmod <- lmer(acuity ~ power + (1 | subject) + (1 | subject:eye), data = vision, REML = FALSE)
-nmod <- lmer(acuity ~ (1 | subject) + (1 | subject:eye), data = vision, REML = FALSE)
+mmod <- lmer(acuity ~ power + (1 | subject) + (1 | subject:eye), data = vision, REML = TRUE)
+nmod <- lmer(acuity ~ (1 | subject) + (1 | subject:eye), data = vision, REML = TRUE)
 KRmodcomp(mmod, nmod)
+```
+
+- LRT.
+```{r}
+mmod_mle <- lmer(acuity ~ power + (1 | subject) + (1 | subject:eye), data = vision, REML = FALSE)
+nmod_mle <- lmer(acuity ~ (1 | subject) + (1 | subject:eye), data = vision, REML = FALSE)
+(lrtstat <- as.numeric(2 * (logLik(mmod_mle, REML = FALSE) - logLik(nmod_mle, REML = FALSE))))
+pchisq(lrtstat, 3, lower.tail = FALSE)
+```
+
+- Parametric bootstrap.
+
+```{r}
+library(pbkrtest)
+
+set.seed(123)
+PBmodcomp(mmod, nmod) %>%
+  summary()
 ```
 
 - If we exclude individual 6 left eye at power 6/36, then `power` becomes significant.
 
 ```{r}
-mmodr <- lmer(acuity ~ power + (1 | subject) + (1 | subject:eye), data = vision, REML = FALSE, subset = -43)
-nmodr <- lmer(acuity ~ (1 | subject) + (1 | subject:eye), data = vision, REML = FALSE, subset = -43)
+mmodr <- lmer(acuity ~ power + (1 | subject) + (1 | subject:eye), data = vision, REML = TRUE, subset = -43)
+nmodr <- lmer(acuity ~ (1 | subject) + (1 | subject:eye), data = vision, REML = TRUE, subset = -43)
 KRmodcomp(mmodr, nmodr)
+
+PBmodcomp(mmodr, nmodr) %>%
+  summary()
 ```
+
+
+
+### Test random effects
 
 - To test significance of the variance component parameters by parametric bootstrap.
 
