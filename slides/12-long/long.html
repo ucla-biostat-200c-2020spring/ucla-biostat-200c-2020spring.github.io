@@ -564,11 +564,11 @@ summary(mmod)</code></pre>
 </ul>
 <pre class="r"><code>library(pbkrtest)
 
-mmod &lt;- lmer(log(income) ~ cyear * sex + age + educ + (cyear | person), data = psid, REML = FALSE)
-mmodr &lt;- lmer(log(income) ~ cyear + sex + age + educ + (cyear | person), data = psid, REML = FALSE)
+mmod &lt;- lmer(log(income) ~ cyear * sex + age + educ + (cyear | person), data = psid, REML = TRUE)
+mmodr &lt;- lmer(log(income) ~ cyear + sex + age + educ + (cyear | person), data = psid, REML = TRUE)
 KRmodcomp(mmod, mmodr)</code></pre>
-<pre><code>## F-test with Kenward-Roger approximation; time: 3.34 sec
-## large : log(income) ~ cyear + sex + age + educ + (cyear | person) + cyear:sex
+<pre><code>## F-test with Kenward-Roger approximation; time: 3.94 sec
+## large : log(income) ~ cyear * sex + age + educ + (cyear | person)
 ## small : log(income) ~ cyear + sex + age + educ + (cyear | person)
 ##          stat     ndf     ddf F.scaling p.value  
 ## Ftest  4.6142  1.0000 81.3279         1 0.03468 *

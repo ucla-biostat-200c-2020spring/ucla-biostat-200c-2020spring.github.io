@@ -99,8 +99,8 @@ summary(mmod)
 ```{r}
 library(pbkrtest)
 
-mmod <- lmer(log(income) ~ cyear * sex + age + educ + (cyear | person), data = psid, REML = FALSE)
-mmodr <- lmer(log(income) ~ cyear + sex + age + educ + (cyear | person), data = psid, REML = FALSE)
+mmod <- lmer(log(income) ~ cyear * sex + age + educ + (cyear | person), data = psid, REML = TRUE)
+mmodr <- lmer(log(income) ~ cyear + sex + age + educ + (cyear | person), data = psid, REML = TRUE)
 KRmodcomp(mmod, mmodr)
 ```
 The interaction term is marginally significant. 
