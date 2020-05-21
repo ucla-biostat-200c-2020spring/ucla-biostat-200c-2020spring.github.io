@@ -381,6 +381,7 @@ summary {
 <li><a href="#restricted-mle-reml">Restricted MLE (REML)</a></li>
 </ul></li>
 <li><a href="#inference">Inference</a><ul>
+<li><a href="#lrt-and-adjusted-f-test-for-fixed-effects">LRT and adjusted F test for fixed effects</a></li>
 <li><a href="#parametric-bootstrap">Parametric bootstrap</a></li>
 <li><a href="#exact-lrt-and-rlrt-test">Exact LRT and RLRT test</a></li>
 </ul></li>
@@ -732,10 +733,17 @@ summary(mmod)</code></pre>
 </div>
 <div id="inference" class="section level2">
 <h2>Inference</h2>
+<div id="lrt-and-adjusted-f-test-for-fixed-effects" class="section level3">
+<h3>LRT and adjusted F test for fixed effects</h3>
 <ul>
 <li><p>If we compare two nested models that differ only in fixed effects, we can use the standard likelihood ratio test (LRT). Remember we have to use MLE (not REML) for LRT.</p></li>
-<li><p>F tests for fixed effects need to use adjusted degrees of freedom (Kenward-Roger adjusted F-test), as implemented in the <code>pbkrtest</code> package.</p></li>
-<li><p>Testing the variance component parameters, e.g., <span class="math inline">\(H_0:\sigma_{\alpha}^2=0\)</span>, can be hard because of the boundary condition (estimator has to be nonnegative). Conventional <span class="math inline">\(\chi^2\)</span> null distribution for LRT can be wrong. E.g., for the <code>pulp</code> data, LRT using the the conventional <span class="math inline">\(\chi_1^2\)</span> null distribution gives a non-significant p-value.</p></li>
+<li><p>F tests for fixed effects need to use adjusted degrees of freedom (Kenward-Roger adjusted F-test for REML), as implemented in the <code>pbkrtest</code> package.</p></li>
+</ul>
+</div>
+<div id="parametric-bootstrap" class="section level3">
+<h3>Parametric bootstrap</h3>
+<ul>
+<li>Testing the variance component parameters, e.g., <span class="math inline">\(H_0:\sigma_{\alpha}^2=0\)</span>, can be hard because of the boundary condition (estimator has to be nonnegative). Conventional <span class="math inline">\(\chi^2\)</span> null distribution for LRT can be wrong. E.g., for the <code>pulp</code> data, LRT using the the conventional <span class="math inline">\(\chi_1^2\)</span> null distribution gives a non-significant p-value.</li>
 </ul>
 <pre class="r"><code>nullmod &lt;- lm(bright ~ 1, data = pulp)
 (lrtstat &lt;- as.numeric(2 * (logLik(smod, REML = FALSE) - logLik(nullmod))))</code></pre>
@@ -743,8 +751,6 @@ summary(mmod)</code></pre>
 <pre class="r"><code># fishy result using LRT
 pchisq(lrtstat, 1, lower.tail = FALSE)</code></pre>
 <pre><code>## [1] 0.1090199</code></pre>
-<div id="parametric-bootstrap" class="section level3">
-<h3>Parametric bootstrap</h3>
 <ul>
 <li>The idea of parameteric bootstrap is we generate new <span class="math inline">\(y\)</span> from the fitted null model many times. For each simulation replicate, we calculate the LRT statistic. Then the p-value is estimated by the proportion of simulation replicates that generate LRT statistics larger than the observed one <span class="math inline">\(2.5684\)</span>.</li>
 </ul>
@@ -985,14 +991,14 @@ summary(mmod)</code></pre>
 <div id="test-fixed-effects" class="section level3">
 <h3>Test fixed effects</h3>
 <ul>
-<li>F-tests can be achieved using adjusted degrees of freedom.</li>
+<li>Kenward-Roger adjusted F-tests for REML.</li>
 </ul>
 <pre class="r"><code>library(pbkrtest)
 
-amod &lt;- lmer(yield ~ treat + (1 | blend), data = penicillin, REML = FALSE)
-nmod &lt;- lmer(yield ~ 1 + (1 | blend), penicillin, REML = FALSE)
-KRmodcomp(amod, nmod)</code></pre>
-<pre><code>## F-test with Kenward-Roger approximation; time: 0.09 sec
+amod_reml &lt;- lmer(yield ~ treat + (1 | blend), data = penicillin, REML = TRUE)
+nmod_reml &lt;- lmer(yield ~ 1 + (1 | blend), data = penicillin, REML = TRUE)
+KRmodcomp(amod_reml, nmod_reml)</code></pre>
+<pre><code>## F-test with Kenward-Roger approximation; time: 0.16 sec
 ## large : yield ~ treat + (1 | blend)
 ## small : yield ~ 1 + (1 | blend)
 ##          stat     ndf     ddf F.scaling p.value
@@ -1000,7 +1006,9 @@ KRmodcomp(amod, nmod)</code></pre>
 <ul>
 <li>LRT using <span class="math inline">\(\chi^2\)</span> null distribution.</li>
 </ul>
-<pre class="r"><code>as.numeric(2 * (logLik(amod, REML = FALSE) - logLik(nmod, REML = FALSE)))</code></pre>
+<pre class="r"><code>amod_mle &lt;- lmer(yield ~ treat + (1 | blend), data = penicillin, REML = FALSE)
+nmod_mle &lt;- lmer(yield ~ 1 + (1 | blend), data = penicillin, REML = FALSE)
+as.numeric(2 * (logLik(amod_mle, REML = FALSE) - logLik(nmod_mle, REML = FALSE)))</code></pre>
 <pre><code>## [1] 4.047367</code></pre>
 <p>The <span class="math inline">\(\chi_3^2\)</span> approximation gives p-value</p>
 <pre class="r"><code>pchisq(4.0474, 3, lower.tail = FALSE)</code></pre>
@@ -1012,7 +1020,7 @@ KRmodcomp(amod, nmod)</code></pre>
 B &lt;- 1000
 lrstat &lt;- numeric(B)
 for (i in 1:B) {
-  ryield &lt;- unlist(simulate(nmod))
+  ryield &lt;- unlist(simulate(nmod_mle))
   nmodr &lt;- suppressMessages(lmer(ryield ~ 1 + (1 | blend), data = penicillin, REML = FALSE))
   amodr &lt;- suppressMessages(lmer(ryield ~ treat + (1 | blend), data = penicillin, REML = FALSE))
   lrstat[i] &lt;- 2 * (logLik(amodr, REML = FALSE) - logLik(nmodr, REML = FALSE))
@@ -1025,22 +1033,22 @@ for (i in 1:B) {
 <pre class="r"><code>sqrt(pval * (1 - pval) / B)</code></pre>
 <pre><code>## [1] 0.01510285</code></pre>
 <ul>
-<li>The <code>pbkrtest</code> packages automate this parametric boostrap procedure (<code>PBtest</code>) along with LRT and other tests for fixed effects.</li>
+<li>The <code>pbkrtest</code> packages automate this parametric boostrap procedure (<code>PBtest</code>) along with LRT and other tests for fixed effects. LRT and parametric bootstrap results are similar to what we got. Note the F test here is the LRT divided by the degrees of freedom assumed to be F-distributed.</li>
 </ul>
 <pre class="r"><code>library(pbkrtest)
 
 set.seed(123)
-pmod &lt;- PBmodcomp(amod, nmod)
-summary(pmod)</code></pre>
-<pre><code>## Bootstrap test; time: 17.25 sec;samples: 1000; extremes: 353;
+PBmodcomp(amod_reml, nmod_reml) %&gt;%
+  summary()</code></pre>
+<pre><code>## Bootstrap test; time: 17.41 sec;samples: 1000; extremes: 342;
 ## large : yield ~ treat + (1 | blend)
 ## small : yield ~ 1 + (1 | blend)
 ##            stat     df    ddf p.value
-## LRT      4.0474 3.0000         0.2564
-## PBtest   4.0474                0.3536
-## Gamma    4.0474                0.3496
-## Bartlett 3.2970 3.0000         0.3481
-## F        1.3491 3.0000 2.7455  0.4153</code></pre>
+## LRT      4.1372 3.0000         0.2470
+## PBtest   4.1372                0.3427
+## Gamma    4.1372                0.3392
+## Bartlett 3.3702 3.0000         0.3380
+## F        1.3791 3.0000 2.7455  0.4087</code></pre>
 </div>
 <div id="test-random-effects" class="section level3">
 <h3>Test random effects</h3>
