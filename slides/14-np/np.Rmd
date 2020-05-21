@@ -1,0 +1,134 @@
+---
+title: "Nonparametric Regression (ELMR Chapter 14)"
+author: "Dr. Hua Zhou @ UCLA"
+date: "May 26, 2020"
+output:
+  # ioslides_presentation: default
+  html_document:
+    toc: true
+    toc_depth: 4  
+subtitle: Biostat 200C
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.align = 'center', cache = TRUE)
+```
+
+Display system information and load `tidyverse` and `faraway` packages
+```{r}
+sessionInfo()
+library(tidyverse)
+library(faraway)
+```
+
+## Parametric vs nonparametric models
+
+- Given a regressor/predictor $x_1,\ldots,x_n$ and response $y_1, \ldots, y_n$, where
+$$
+y_i = f(x_i) + \epsilon_i,
+$$
+where $\epsilon_i$ are iid with mean zero and unknown variance $\sigma^2$. 
+
+- Parametric approach assumes that $f(x)$ belongs to a parametric family $f(x \mid \boldsymbol{\beta})$. Examples are
+\begin{eqnarray*}
+  f(x \mid \boldsymbol{\beta}) &=& \beta_0 + \beta_1 x \\
+  f(x \mid \boldsymbol{\beta}) &=& \beta_0 + \beta_1 x + \beta_2 x^2 \\
+  f(x \mid \boldsymbol{\beta}) &=& \beta_0 + \beta_1 x^{\beta_2}.
+\end{eqnarray*}
+
+- Nonparametric approach assumes $f$ is from some smooth family of functions. 
+
+- Three datasets.
+
+    - `exa`: $f(x) = \sin^3 (2 \pi x^3)$. 
+```{r}
+exa <- as_tibble(exa) %>% print()
+exa %>%
+  ggplot(mapping = aes(x = x, y = y)) + 
+  geom_point() +
+  geom_smooth(span = 0.2) # small span give more wiggleness
+```
+
+    - `exb`: $f(x) = 0$. 
+```{r}
+exb <- as_tibble(exb) %>% print()
+exb %>%
+  ggplot(mapping = aes(x = x, y = y)) + 
+  geom_point() +
+  geom_smooth() # small span give more wiggleness
+```
+
+    - `faithful`: data on Old Faithful geyser in Yellowstone National Park.
+```{r}
+faithful <- as_tibble(faithful) %>% print()
+faithful %>%
+  ggplot(mapping = aes(x = eruptions, y = waiting)) + 
+  geom_point() +
+  geom_smooth() # small span give more wiggleness
+```
+
+## Kernel estimators
+
+- Moving average estimator
+$$
+\hat f_\lambda(x) = \frac{1}{n\lambda} \sum_{j=1}^n K\left( \frac{x-x_j}{\lambda} \right) Y_j = \frac{1}{n} \sum_{j=1}^n w_j Y_j,
+$$
+where
+$$
+w_j = \lambda^{-1} K\left( \frac{x-x_j}{\lambda} \right),
+$$
+and $K$ is a **kernel** such that $\int K(x) \, dx = 1$. $\lambda$ is called the **bandwidth**, **window width** or **smoothing parameter**.
+
+- When $x$s are spaced unevenly, the kernel estimator can give poor results. This is improved by the **Nadaraya-Watson** estimator
+$$
+f_\lambda(x) = \frac{\sum_{j=1}^n w_j Y_j}{\sum_{j=1}^n w_j}.
+$$
+- Asymptotics of kernel estimators 
+$$
+\text{MSE}(x) = \mathbb{E} [f(x) - \hat f_\lambda(x)]^2 = O(n^{-4/5}).
+$$
+Typical parametric estimator has $\text{MSE}(x) = O(n^{-1})$ _if the parametric model is correct_. 
+
+- Choice of kernel. Ideal kernel is smooth, compact, and amenable to rapid computation. The optimal choice under some standard assumptions is the Epanechnikov kernel
+$$
+K(x) = \begin{cases}
+\frac 34 (1 - x^2) & |x| < 1 \\
+0 & \text{otherwise}
+\end{cases}.
+$$
+
+- Choice of smoothing parameter $\lambda$. Small $\lambda$ gives more wiggly curves, while large $\lambda$ yields smoother curves. 
+
+```{r}
+for (bw in c(0.1, 0.5, 2)) {
+  with(faithful, {
+    plot(waiting ~ eruptions, col = gray(0.75))
+    lines(ksmooth(eruptions, waiting, "normal", bw))
+  })
+}
+```
+
+- Cross-valiation (CV) choose the $\lambda$ that minimizes the criterion
+$$
+\text{CV}(\lambda) = \frac 1n \sum_{j=1}^n [y_j - \hat f_{\lambda(j)})(x_j)]^2,
+$$
+where $(j)$ indicates that point $j$ is left out of the fit. 
+
+```{r}
+library(sm)
+
+with(faithful, 
+     sm.regression(eruptions, waiting, h=h.select(eruptions, waiting)))
+```
+
+```{r}
+with(exa, sm.regression(x, y, h = h.select(x, y)))
+with(exb, sm.regression(x, y, h = h.select(x, y)))
+```
+
+## Splines
+
+## Local polynomial
+
+## Wavelets
+
