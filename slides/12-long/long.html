@@ -712,7 +712,7 @@ diagd %&gt;%
 y_{ijk} = \mu + p_j + s_i + e_{ik} + \epsilon_{ijk},
 \]</span> where <span class="math inline">\(i=1,\ldots,7\)</span> indexes individuals, <span class="math inline">\(j=1,\ldots,4\)</span> indexes power, and <span class="math inline">\(k=1,2\)</span> indexes eyes. The random effect distributions are <span class="math display">\[
 s_i \sim_{\text{iid}} N(0,\sigma_s^2), \quad e_{ik} \sim_{\text{iid}} N(0,\sigma_e^2) \text{ for fixed } i, \quad \epsilon_{ijk} \sim_{\text{iid}} N(0, \sigma^2).
-\]</span> <span class="math inline">\(\sigma_e^2\)</span> is interpreted as the variance of acuity between combinations of <code>eyes</code> and <code>subject</code>.</li>
+\]</span> <span class="math inline">\(\sigma_e^2\)</span> is interpreted as the variance of acuity between combinations of <code>eyes</code> and <code>subject</code>, since we don’t believe the eye difference is consistent across individuals.</li>
 </ul>
 <pre class="r"><code>mmod &lt;- lmer(acuity ~ power + (1 | subject) + (1 | subject:eye), data = vision)
 summary(mmod)</code></pre>

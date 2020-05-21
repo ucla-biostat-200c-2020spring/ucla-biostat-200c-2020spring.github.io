@@ -161,7 +161,7 @@ where $i=1,\ldots,7$ indexes individuals, $j=1,\ldots,4$ indexes power, and $k=1
 $$
 s_i \sim_{\text{iid}} N(0,\sigma_s^2), \quad e_{ik} \sim_{\text{iid}} N(0,\sigma_e^2) \text{ for fixed } i, \quad \epsilon_{ijk} \sim_{\text{iid}} N(0, \sigma^2).
 $$
-$\sigma_e^2$ is interpreted as the variance of acuity between combinations of `eyes` and `subject`.
+$\sigma_e^2$ is interpreted as the variance of acuity between combinations of `eyes` and `subject`, since we don't believe the eye difference is consistent across individuals.
 
 ```{r}
 mmod <- lmer(acuity ~ power + (1 | subject) + (1 | subject:eye), data = vision)
@@ -206,8 +206,6 @@ KRmodcomp(mmodr, nmodr)
 PBmodcomp(mmodr, nmodr) %>%
   summary()
 ```
-
-
 
 ### Test random effects
 

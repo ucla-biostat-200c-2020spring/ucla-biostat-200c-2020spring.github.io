@@ -49,7 +49,7 @@ This model, combining GLM and mixed effects model, is called the **generalized l
 
 ## Overview of estimation and inference methods
 
-- Estimation and inference of GLMM has been active research. We give an overview of a few commonly used methods.
+- Estimation and inference of GLMM have been active research. We give an overview of a few commonly used methods.
 
 - **Maximum likelihood estimate (MLE)** is obtained by maximizing the log-likelihood function. However, each iteration of the optimization algorithm needs to evaluate numerical integration, which quickly becomes infeasible when the dimension of random effects $\boldsymbol{\gamma}$ is large.
 
@@ -69,7 +69,7 @@ It can be adapted to the mixed effects model. PQL has computational advantage bu
 
 ## Binary response example
 
-- `ctsib` data in EMLR.  
+- `ctsib` data in EMLR studies the balance of 40 individuals.
     - Response: stability (1 = stable, 0 = instable).  
     - Predictors: sex (binary), age (continuous), height (continuous), surface (binary, `norm` or `foam`), vision (factor, `open` or `closed` or `dome`).   
     - Each subject is tested twice on a combination of `surface` and `vision`. 12 measurements per subject.  
@@ -103,6 +103,24 @@ subsum %>%
 subsum %>%  
   ggplot() + 
   geom_boxplot(mapping = aes(x = Sex, y = stable))
+```
+
+```{r}
+ctsib %>%
+  group_by(Subject, Surface) %>%
+  summarize(stable = mean(stable)) %>%
+  ggplot() + 
+  geom_boxplot(mapping = aes(x = Surface, y = stable)) + 
+  scale_y_log10()
+```
+
+```{r}
+ctsib %>%
+  group_by(Subject, Vision) %>%
+  summarize(stable = mean(stable)) %>%
+  ggplot() + 
+  geom_boxplot(mapping = aes(x = Vision, y = stable)) + 
+  scale_y_log10()
 ```
 
 - GLM analysis. What are the issues with the GLM here? 
@@ -213,16 +231,15 @@ modglm <- glm(seizures ~ offset(log(timeadj)) + expind + treat + I(expind * trea
 summary(modglm)
 ```
 
-
-- GLMM analysis by Gauss-Hermite quadrature.
+- GLMM analysis by Gauss-Hermite quadrature with 25 knots.
 
 ```{r}
 library(lme4)
 
 modgh <- glmer(seizures ~ offset(log(timeadj)) + expind + treat + I(expind * treat) + (1 | id), 
-               nAGQ = 25,
-               family = poisson,
-               data = epilo)
+               nAGQ     = 25,
+               family   = poisson,
+               data     = epilo)
 summary(modgh)
 ```
 
