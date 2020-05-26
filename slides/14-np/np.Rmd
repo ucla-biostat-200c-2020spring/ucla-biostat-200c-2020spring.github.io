@@ -41,31 +41,35 @@ where $\epsilon_i$ are iid with mean zero and unknown variance $\sigma^2$.
 - Three datasets.
 
     - `exa`: $f(x) = \sin^3 (2 \pi x^3)$. 
-```{r}
-exa <- as_tibble(exa) %>% print()
-exa %>%
-  ggplot(mapping = aes(x = x, y = y)) + 
-  geom_point() +
-  geom_smooth(span = 0.2) # small span give more wiggleness
-```
+    ```{r}
+    exa <- as_tibble(exa) %>% print()
+    exa %>%
+      ggplot(mapping = aes(x = x, y = y)) + 
+      geom_point() +
+      geom_smooth(span = 0.2) + # small span give more wiggleness
+      geom_line(mapping = aes(x = x, y = m))
+    ```
 
     - `exb`: $f(x) = 0$. 
-```{r}
-exb <- as_tibble(exb) %>% print()
-exb %>%
-  ggplot(mapping = aes(x = x, y = y)) + 
-  geom_point() +
-  geom_smooth() # small span give more wiggleness
-```
+    ```{r}
+    exb <- as_tibble(exb) %>% print()
+    exb %>%
+      ggplot(mapping = aes(x = x, y = y)) + 
+      geom_point() +
+      geom_smooth() +
+      geom_line(mapping = aes(x = x, y = m))
+    ```
 
     - `faithful`: data on Old Faithful geyser in Yellowstone National Park.
-```{r}
-faithful <- as_tibble(faithful) %>% print()
-faithful %>%
-  ggplot(mapping = aes(x = eruptions, y = waiting)) + 
-  geom_point() +
-  geom_smooth() # small span give more wiggleness
-```
+    ```{r}
+    faithful <- as_tibble(faithful) %>% print()
+    faithful %>%
+      ggplot(mapping = aes(x = eruptions, y = waiting)) + 
+      geom_point() +
+      geom_smooth() # small span give more wiggleness
+    ```
+
+![](./oldfaithful.jpg)
 
 ## Kernel estimators
 
@@ -89,13 +93,15 @@ $$
 $$
 Typical parametric estimator has $\text{MSE}(x) = O(n^{-1})$ _if the parametric model is correct_. 
 
-- Choice of kernel. Ideal kernel is smooth, compact, and amenable to rapid computation. The optimal choice under some standard assumptions is the Epanechnikov kernel
+- Choice of kernel. Ideal kernel is smooth, compact, and amenable to rapid computation. The optimal choice under some standard assumptions is the **Epanechnikov kernel**
 $$
 K(x) = \begin{cases}
 \frac 34 (1 - x^2) & |x| < 1 \\
 0 & \text{otherwise}
 \end{cases}.
 $$
+
+![](https://upload.wikimedia.org/wikipedia/commons/4/47/Kernels.svg)
 
 - Choice of smoothing parameter $\lambda$. Small $\lambda$ gives more wiggly curves, while large $\lambda$ yields smoother curves. 
 
@@ -110,7 +116,7 @@ for (bw in c(0.1, 0.5, 2)) {
 
 - Cross-valiation (CV) choose the $\lambda$ that minimizes the criterion
 $$
-\text{CV}(\lambda) = \frac 1n \sum_{j=1}^n [y_j - \hat f_{\lambda(j)})(x_j)]^2,
+\text{CV}(\lambda) = \frac 1n \sum_{j=1}^n [y_j - \hat f_{\lambda(j)}(x_j)]^2,
 $$
 where $(j)$ indicates that point $j$ is left out of the fit. 
 
@@ -118,10 +124,7 @@ where $(j)$ indicates that point $j$ is left out of the fit.
 library(sm)
 
 with(faithful, 
-     sm.regression(eruptions, waiting, h=h.select(eruptions, waiting)))
-```
-
-```{r}
+     sm.regression(eruptions, waiting, h = h.select(eruptions, waiting)))
 with(exa, sm.regression(x, y, h = h.select(x, y)))
 with(exb, sm.regression(x, y, h = h.select(x, y)))
 ```
@@ -150,7 +153,7 @@ with(faithful, {
 ```{r}
 with(exa, {
   plot(y ~ x, col = gray(0.75))
-  lines(x, m)
+  lines(x, m) # true model
   lines(smooth.spline(x, y), lty = 2)
 })
 ```
@@ -158,7 +161,7 @@ with(exa, {
 ```{r}
 with(exb, {
   plot(y ~ x, col = gray(0.75))
-  lines(x, m)
+  lines(x, m) # true model
   lines(smooth.spline(x, y), lty = 2)
 })
 ```
@@ -218,9 +221,9 @@ lines(predict(lmod) ~ x, exa, lty = 2)
 
 - Both kernel and spline smoothers are vulnerable to outliers.
 
-- **Local polynomial** method fit a polynomial in a window using robust methods, then the predicted response at the middle of the window is the fitted value. This procedure is repeated by sliding the window over the range of the data. **lowess** or **loess** method.
+- **Local polynomial** method fit a polynomial in a window using robust methods, then the predicted response at the middle of the window is the fitted value. This procedure is repeated by sliding the window over the range of the data. **lowess** or **loess** functions in R.
 
-- We need to choose the order of polynomial and window width. Default window width is 3/4 of data. 
+- We need to choose the order of polynomial and window width. Default window width is 3/4 of data. Default polynomial order is 1 (linear). 
 
 - Examples.
 
