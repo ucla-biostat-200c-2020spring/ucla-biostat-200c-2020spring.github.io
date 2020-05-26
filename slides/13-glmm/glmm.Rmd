@@ -243,6 +243,18 @@ modgh <- glmer(seizures ~ offset(log(timeadj)) + expind + treat + I(expind * tre
 summary(modgh)
 ```
 
+- GLMM estimation by PQL.
+
+```{r}
+library(MASS)
+
+modpql <- glmmPQL(seizures ~ offset(log(timeadj)) + expind + treat + I(expind * treat),
+                  random = ~ 1 | id,
+                  family = poisson,
+                  data   = epilo)
+summary(modpql)
+```
+
 ## GEE (generalized estimation equation)
 
 - The quasi-likelihood (quasi-binomial, quasi-Poisson, etc) approach can be generalized to handle correlated, nonnormal responses.

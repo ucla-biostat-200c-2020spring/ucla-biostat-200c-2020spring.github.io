@@ -914,6 +914,52 @@ summary(modgh)</code></pre>
 ## expind      -0.175              
 ## treat       -0.718  0.126       
 ## I(xpnd*trt)  0.118 -0.672 -0.173</code></pre>
+<ul>
+<li>GLMM estimation by PQL.</li>
+</ul>
+<pre class="r"><code>library(MASS)
+
+modpql &lt;- glmmPQL(seizures ~ offset(log(timeadj)) + expind + treat + I(expind * treat),
+                  random = ~ 1 | id,
+                  family = poisson,
+                  data   = epilo)</code></pre>
+<pre><code>## iteration 1</code></pre>
+<pre><code>## iteration 2</code></pre>
+<pre><code>## iteration 3</code></pre>
+<pre><code>## iteration 4</code></pre>
+<pre><code>## iteration 5</code></pre>
+<pre class="r"><code>summary(modpql)</code></pre>
+<pre><code>## Linear mixed-effects model fit by maximum likelihood
+##  Data: epilo 
+##   AIC BIC logLik
+##    NA  NA     NA
+## 
+## Random effects:
+##  Formula: ~1 | id
+##         (Intercept) Residual
+## StdDev:   0.6819731 1.605408
+## 
+## Variance function:
+##  Structure: fixed weights
+##  Formula: ~invwt 
+## Fixed effects: seizures ~ offset(log(timeadj)) + expind + treat + I(expind *      treat) 
+##                        Value  Std.Error  DF   t-value p-value
+## (Intercept)        1.0807909 0.14370130 230  7.521094  0.0000
+## expind             0.1118360 0.07576686 230  1.476055  0.1413
+## treat             -0.0089374 0.20024399  56 -0.044632  0.9646
+## I(expind * treat) -0.3023841 0.11268890 230 -2.683353  0.0078
+##  Correlation: 
+##                   (Intr) expind treat 
+## expind            -0.278              
+## treat             -0.718  0.200       
+## I(expind * treat)  0.187 -0.672 -0.274
+## 
+## Standardized Within-Group Residuals:
+##        Min         Q1        Med         Q3        Max 
+## -2.2956801 -0.5651709 -0.1501522  0.3243903  6.3134910 
+## 
+## Number of Observations: 290
+## Number of Groups: 58</code></pre>
 </div>
 <div id="gee-generalized-estimation-equation" class="section level2">
 <h2>GEE (generalized estimation equation)</h2>
