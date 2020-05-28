@@ -213,8 +213,8 @@ matplot(bs(seq(0, 1, length = 1000), df = 12), type = "l", ylab="", col = 1)
 ```{r}
 lmod <- lm(y ~ bs(x, 12), exa)
 plot(y ~ x, exa, col = gray(0.75))
-lines(m ~ x, exa)
-lines(predict(lmod) ~ x, exa, lty = 2)
+lines(m ~ x, exa) # true model
+lines(predict(lmod) ~ x, exa, lty = 2) # Cubic B-spline fit
 ```
 
 ## Local polynomials
@@ -223,7 +223,7 @@ lines(predict(lmod) ~ x, exa, lty = 2)
 
 - **Local polynomial** method fit a polynomial in a window using robust methods, then the predicted response at the middle of the window is the fitted value. This procedure is repeated by sliding the window over the range of the data. **lowess** or **loess** functions in R.
 
-- We need to choose the order of polynomial and window width. Default window width is 3/4 of data. Default polynomial order is 1 (linear). 
+- We need to choose the order of polynomial and window width. Default window width is 0.75 of data. Default polynomial order is 2 (quadratic). 
 
 - Examples.
 
@@ -240,7 +240,7 @@ with(faithful, {
 with(exa, {
   plot(y ~ x, col = gray(0.75))
   lines(m ~ x)
-  f <- loess(y ~ x)
+  f <- loess(y ~ x) # default span = 0.75
   lines(f$x, f$fitted, lty = 2)
   # try smaller span (proportion of the range)
   f <- loess(y ~ x, span = 0.22)
@@ -251,16 +251,16 @@ with(exa, {
 ```{r}
 with(exb, {
   plot(y ~ x, col = gray(0.75))
-  lines(m ~ x)
-  f <- loess(y ~ x)
+  lines(m ~ x) 
+  f <- loess(y ~ x) # default span = 0.75
   lines(f$x, f$fitted, lty = 2)
-  # splan = 1 means whole span of data (smoothest)
+  # span = 1 means whole span of data (smoothest)
   f <- loess(y ~ x, span = 1)
   lines(f$x, f$fitted, lty = 5)
 })
 ```
 
-- Pointwise confidence band is obtained by the local parametric fit for smoothing splines and loess.
+- Pointwise confidence band is obtained by the local parametric fit for smoothing splines or loess.
 
 ```{r}
 ggplot(data = exa, mapping = aes(x = x, y = y)) +
