@@ -37,6 +37,8 @@ where $f_j$ are smooth arbitrary functions. Interaction terms are ignored. To in
 $$
 y = \beta_0 + \sum_{j=1}^p f_j(x_j) + \mathbf{z}^T \boldsymbol{\gamma} + \epsilon,
 $$
+where $\mathbf{z}$ are categorical predictors.
+
 - There are several packages in R that can fit additive models: `gam`, `mgcv` (included in default installation of R), and `gss`.
 
 - `gam` package uses a **backfitting algorithm** for fitting the additive models.
@@ -55,7 +57,7 @@ $$
 $$
 f_j(x) = \sum_i \beta_i \phi_i(x)
 $$
-for a family of spline basis function, $\phi_i$. The smoothing penalty $\int [f_j''(x)]^2 \, dx$ translates to the term $\boldsymbol{\beta}_j^T \mathbf{S}_j \boldsymbol{\beta}_j$ for a suitable $\mathbf{S}_j$ that depends on the choice of basis. It tha maximizes the penalized log-likelihood
+for a family of spline basis function, $\phi_i$. The roughness penalty $\int [f_j''(x)]^2 \, dx$ translates to the term $\boldsymbol{\beta}_j^T \mathbf{S}_j \boldsymbol{\beta}_j$ for a suitable $\mathbf{S}_j$ that depends on the choice of basis. It then maximizes the penalized log-likelihood
 $$
 \log L(\boldsymbol{\beta}) - \sum_j \lambda_j \boldsymbol{\beta}_j^T \mathbf{S}_j \boldsymbol{\beta}_j,
 $$
@@ -64,7 +66,7 @@ where $\lambda_j$ control the amount of smoothing for each variable. Generalized
     
 ## LA ozone concentration
 
-- The response is `O3` (ozone level). The predictors are `temp` (temperature at El Monte), `ibh` (inverse base height at LAX), and `ibt` (inversion top temperature at LAX). 
+- The response is `O3` (ozone level). The predictors are `temp` (temperature at El Monte), `ibh` (inversion base height at LAX), and `ibt` (inversion top temperature at LAX). 
 ```{r}
 ozone <- as_tibble(ozone) %>% print()
 ```    
@@ -114,7 +116,9 @@ library(mgcv)
 ammgcv <- gam(O3 ~ s(temp) + s(ibh) + s(ibt), data = ozone)
 summary(ammgcv)
 ```
-Effective degrees of freedom is calculated as the trace of projection matrices. An approximate F test gives the significance of predictors. 
+Effective degrees of freedom is calculated as the trace of projection matrices. An approximate F test gives the significance of predictors.
+
+
 - We can exmine the transformations being used.
 
 ```{r}
@@ -157,6 +161,7 @@ vis.gam(amint, theta = -45, color = "gray")
 predict(ammgcv, data.frame(temp = 60, ibh = 2000, ibt = 100), se = T)
 ```
 ```{r}
+# extrapolation
 predict(ammgcv, data.frame(temp = 120, ibh = 2000, ibt = 100), se = T)
 ```
 
