@@ -1,6 +1,6 @@
 ---
 title: "Biostat 200C Homework 4"
-subtitle: Due May 29 @ 11:59PM
+subtitle: Due ~~May 29~~ May 31 @ 11:59PM
 output: 
   html_document:
     toc: true
@@ -48,7 +48,7 @@ which can be solved to obtain ANOVA estimate
 
 2. Derive the MLE estimate for $\mu$, $\sigma_\alpha^2$, and $\sigma_{\epsilon}^2$. Hint: write down the log-likelihood and find the maximizer.
 
-3. Derive the REML estimate for $\mu$, $\sigma_\alpha^2$, and $\sigma_{\epsilon}^2$. 
+3. (**Optional**) Derive the REML estimate for $\mu$, $\sigma_\alpha^2$, and $\sigma_{\epsilon}^2$. 
 
 4. For all three estimates, check that your results match those we obtained using R for the `pulp` example in class.
 
