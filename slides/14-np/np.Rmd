@@ -29,14 +29,16 @@ y_i = f(x_i) + \epsilon_i,
 $$
 where $\epsilon_i$ are iid with mean zero and unknown variance $\sigma^2$. 
 
-- Parametric approach assumes that $f(x)$ belongs to a parametric family $f(x \mid \boldsymbol{\beta})$. Examples are
+- **Parametric approach** assumes that $f(x)$ belongs to a parametric family $f(x \mid \boldsymbol{\beta})$. Examples are
 \begin{eqnarray*}
   f(x \mid \boldsymbol{\beta}) &=& \beta_0 + \beta_1 x \\
   f(x \mid \boldsymbol{\beta}) &=& \beta_0 + \beta_1 x + \beta_2 x^2 \\
   f(x \mid \boldsymbol{\beta}) &=& \beta_0 + \beta_1 x^{\beta_2}.
 \end{eqnarray*}
 
-- Nonparametric approach assumes $f$ is from some smooth family of functions. 
+- **Nonparametric approach** assumes $f$ is from some smooth family of functions. 
+
+- Nonparametric approaches offers flexible modelling of complex data, and often serve as valuable exploratory data analysis tools for formulating meaningful and effective parametric models.
 
 - Three datasets.
 
@@ -47,7 +49,7 @@ where $\epsilon_i$ are iid with mean zero and unknown variance $\sigma^2$.
       ggplot(mapping = aes(x = x, y = y)) + 
       geom_point() +
       geom_smooth(span = 0.2) + # small span give more wiggleness
-      geom_line(mapping = aes(x = x, y = m))
+      geom_line(mapping = aes(x = x, y = m)) # true model (black line)
     ```
 
     - `exb`: $f(x) = 0$. 
@@ -109,6 +111,7 @@ $$
 for (bw in c(0.1, 0.5, 2)) {
   with(faithful, {
     plot(waiting ~ eruptions, col = gray(0.75))
+    # Nadaraya–Watson kernel estimate with normal kernel
     lines(ksmooth(eruptions, waiting, "normal", bw))
   })
 }
@@ -123,7 +126,7 @@ where $(j)$ indicates that point $j$ is left out of the fit.
 ```{r}
 library(sm)
 
-with(faithful, 
+with(faithful,
      sm.regression(eruptions, waiting, h = h.select(eruptions, waiting)))
 with(exa, sm.regression(x, y, h = h.select(x, y)))
 with(exb, sm.regression(x, y, h = h.select(x, y)))
@@ -133,7 +136,7 @@ with(exb, sm.regression(x, y, h = h.select(x, y)))
 
 ### Smoothing splines
 
-- We choose $\hat f$ to minize the modified least squares criterion
+- Smoothing spline approach chooses $\hat f$ to minize the modified least squares criterion
 $$
 \frac 1n \sum_i [y_i - f(x_i)]^2 + \lambda \int [f''(x)]^2 \, dx,
 $$
@@ -141,7 +144,7 @@ where $\lambda > 0$ is the smoothing paramter and $\int [f''(x)]^2 \, dx$ is a *
 
 - The minimizer takes a special form: $\hat f$ is a cubic spline (piecewise cubic polynomial in each interval $(x_i, x_{i+1})$). 
 
-- The tuning parameter $\lambda$ is chosen by cross-validation in R.
+- The tuning parameter $\lambda$ is chosen by cross-validation (either leave-one-out (LOO) or generalized (GCV)) in R.
 
 ```{r}
 with(faithful, {
@@ -165,6 +168,7 @@ with(exb, {
   lines(smooth.spline(x, y), lty = 2)
 })
 ```
+The last example `exb` shows that automatic choice of tuning parameter is not foolproof.
 
 ### Regression splines
 
@@ -173,6 +177,7 @@ with(exb, {
 - Piecewise linear splines:
 
 ```{r}
+# right hockey stick function (RHS) with a knot at c
 rhs <- function(x, c) ifelse(x > c, x - c, 0)
 curve(rhs(x, 0.5), 0, 1)
 ```
@@ -183,7 +188,9 @@ curve(rhs(x, 0.5), 0, 1)
 ```
 and compute a design matrix of splines with knots at these points for each $x$:
 ```{r}
+# each column is a RHS function with a specific knot 
 dm <- outer(exa$x, knots, rhs)
+dim(dm)
 matplot(exa$x, dm, type = "l", col = 1, xlab = "x", ylab="")
 ```
 
@@ -211,6 +218,7 @@ matplot(bs(seq(0, 1, length = 1000), df = 12), type = "l", ylab="", col = 1)
 ```
 
 ```{r}
+# generate design matrix using B-splines with df = 12
 lmod <- lm(y ~ bs(x, 12), exa)
 plot(y ~ x, exa, col = gray(0.75))
 lines(m ~ x, exa) # true model
@@ -221,7 +229,9 @@ lines(predict(lmod) ~ x, exa, lty = 2) # Cubic B-spline fit
 
 - Both kernel and spline smoothers are vulnerable to outliers.
 
-- **Local polynomial** method fit a polynomial in a window using robust methods, then the predicted response at the middle of the window is the fitted value. This procedure is repeated by sliding the window over the range of the data. **lowess** or **loess** functions in R.
+- **Local polynomial** method fit a polynomial in a window using robust methods, then the predicted response at the middle of the window is the fitted value. This procedure is repeated by sliding the window over the range of the data. 
+
+- **lowess** (locally weighted scatterplot smoothing) or **loess** (locally estimated scatterplot smoothing) functions in R.
 
 - We need to choose the order of polynomial and window width. Default window width is 0.75 of data. Default polynomial order is 2 (quadratic). 
 
