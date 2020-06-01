@@ -38,7 +38,7 @@ where $\epsilon_i$ are iid with mean zero and unknown variance $\sigma^2$.
 
 - **Nonparametric approach** assumes $f$ is from some smooth family of functions. 
 
-- Nonparametric approaches offers flexible modelling of complex data, and often serve as valuable exploratory data analysis tools for formulating meaningful and effective parametric models.
+- Nonparametric approaches offers flexible modelling of complex data, and often serve as valuable exploratory data analysis tools to guide formulation of meaningful and effective parametric models.
 
 - Three datasets.
 
