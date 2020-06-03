@@ -994,7 +994,7 @@ g(\boldsymbol{\mu}_i) &amp;=&amp; \mathbf{X}_i \boldsymbol{\beta} \\
 <li><p>Given estimates of <span class="math inline">\(\phi\)</span> and <span class="math inline">\(\boldsymbol{\alpha}\)</span>, we solve the <strong>estimation equation</strong> <span class="math display">\[
 \sum_i [D_{\boldsymbol{\beta}} \boldsymbol{\mu}_i(\boldsymbol{\beta})]^T \mathbf{V}_i^{-1}(\mathbf{Y}_i - \boldsymbol{\mu}_i) = \mathbf{0}.
 \]</span></p></li>
-<li><p>Let’s revisit the <code>ctsib</code> (stability) data set. We use the exchangeable correlation, or equivalently, compound symmetry. Standard errors and Wald test are constructed using the sandwich estimators. <span class="math inline">\(\boldsymbol{\beta}\)</span> estimates in GEE are about half the size of those from GLMM.</p></li>
+<li><p>Let’s revisit the <code>ctsib</code> (stability) data set. We use the exchangeable correlation, or equivalently, compound symmetry. Standard errors and Wald test are constructed using the sandwich estimators. <span class="math inline">\(\boldsymbol{\beta}\)</span> estimates in GEE are about half the size of those from GLMM. The <code>scale.fix = TRUE</code> instructs the function <code>geeglm</code> not estimate the dispersion parameter <span class="math inline">\(\phi\)</span>, since for binary response the dispersion is always 1.</p></li>
 </ul>
 <pre class="r"><code>library(geepack)
 
@@ -1050,11 +1050,11 @@ summary(modgeep)</code></pre>
 ##     49), id = id, corstr = &quot;ar1&quot;)
 ## 
 ##  Coefficients:
-##                   Estimate Std.err  Wald Pr(&gt;|W|)    
-## (Intercept)         1.3138  0.1616 66.10  4.4e-16 ***
-## expind              0.1509  0.1108  1.86    0.173    
-## treat              -0.0797  0.1983  0.16    0.688    
-## I(expind * treat)  -0.3987  0.1745  5.22    0.022 *  
+##                   Estimate  Std.err   Wald Pr(&gt;|W|)    
+## (Intercept)        1.31383  0.16159 66.103 4.44e-16 ***
+## expind             0.15094  0.11077  1.857   0.1730    
+## treat             -0.07973  0.19831  0.162   0.6877    
+## I(expind * treat) -0.39872  0.17454  5.218   0.0223 *  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
@@ -1062,12 +1062,12 @@ summary(modgeep)</code></pre>
 ## Estimated Scale Parameters:
 ## 
 ##             Estimate Std.err
-## (Intercept)     10.6    2.35
+## (Intercept)    10.61    2.35
 ##   Link = identity 
 ## 
 ## Estimated Correlation Parameters:
 ##       Estimate Std.err
-## alpha    0.783  0.0519
+## alpha   0.7831 0.05192
 ## Number of clusters:   58  Maximum cluster size: 5</code></pre>
 </div>
 

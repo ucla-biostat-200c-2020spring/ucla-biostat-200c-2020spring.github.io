@@ -297,7 +297,7 @@ $$
 \sum_i [D_{\boldsymbol{\beta}} \boldsymbol{\mu}_i(\boldsymbol{\beta})]^T \mathbf{V}_i^{-1}(\mathbf{Y}_i - \boldsymbol{\mu}_i) = \mathbf{0}.
 $$
 
-- Let's revisit the `ctsib` (stability) data set. We use the exchangeable correlation, or equivalently, compound symmetry. Standard errors and Wald test are constructed using the sandwich estimators. $\boldsymbol{\beta}$ estimates in GEE are about half the size of those from GLMM. 
+- Let's revisit the `ctsib` (stability) data set. We use the exchangeable correlation, or equivalently, compound symmetry. Standard errors and Wald test are constructed using the sandwich estimators. $\boldsymbol{\beta}$ estimates in GEE are about half the size of those from GLMM. The `scale.fix = TRUE` instructs the function `geeglm` not estimate the dispersion parameter $\phi$, since for binary response the dispersion is always 1. 
 
 ```{r}
 library(geepack)
