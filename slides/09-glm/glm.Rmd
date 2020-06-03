@@ -1,5 +1,5 @@
 ---
-title: "Generalized Linear MOdels (ELMR Chapter 8)"
+title: "Generalized Linear Models (ELMR Chapter 8)"
 author: "Dr. Hua Zhou @ UCLA"
 date: "Apr 30, 2020"
 output:
