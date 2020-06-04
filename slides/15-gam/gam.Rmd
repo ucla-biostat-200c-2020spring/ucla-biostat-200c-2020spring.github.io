@@ -1,7 +1,7 @@
 ---
 title: "Generalized Additive Model (ELMR Chapter 15)"
 author: "Dr. Hua Zhou @ UCLA"
-date: "May 28, 2020"
+date: "June 4, 2020"
 output:
   # ioslides_presentation: default
   html_document:
@@ -209,7 +209,7 @@ egamm <- gamm(seizures ~ offset(timeadj) + treat * expind + s(age),
 summary(egamm$gam)
 ```
 
-## Multivariate adaptive regression splines (MARS)
+## Multivariate adaptive regression splines (MARS) (**not covered in this course**)
 
 - MARS fits data by model
 $$
