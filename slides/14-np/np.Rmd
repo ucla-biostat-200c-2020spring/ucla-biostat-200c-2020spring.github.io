@@ -1,7 +1,7 @@
 ---
 title: "Nonparametric Regression (ELMR Chapter 14)"
 author: "Dr. Hua Zhou @ UCLA"
-date: "May 26, 2020"
+date: "June 2, 2020"
 output:
   # ioslides_presentation: default
   html_document:
@@ -290,7 +290,7 @@ ggplot(data = exa, mapping = aes(x = x, y = y)) +
   geom_line(mapping = aes(x = x, y = m), linetype = 2)
 ```
 
-## Wavelets
+## Wavelets (**not covered in this course**)
 
 - In general, we approximate a curve by a family of basis functions
 $$
