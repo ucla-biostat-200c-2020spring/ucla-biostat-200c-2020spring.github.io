@@ -23,7 +23,7 @@ This is an open book test. Helping or asking help from others is considered plag
 
 ## Q1. (25 pts) Survival data analysis
 
-Consider following survival times of 25 patients with no history of chronic diesease (`chr = 0`) and 25 patients with history of chronic disease (`chr = 1`).
+Consider following survival times of 25 patients with no history of chronic diesease (`chr = 0`) and 25 patients with history of chronic disease (`chr = 1`). + indicates a right-censored time.
 
 Group 1 (`chr=0`): 12.3+, 5.4, 8.2, 12.2+, 11.7, 10.0, 5.7, 9.8, 2.6, 11.0, 9.2, 12.1+, 6.6, 2.2, 1.8, 10.2, 10.7, 11.1, 5.3, 3.5, 9.2, 2.5, 8.7, 3.8, 3.0.
 
